@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — StreakPrep</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --dark:   #0B0F1A;
+      --card:   #111827;
+      --border: #1E2A3B;
+      --text:   #F0F4FF;
+      --muted:  #6B7FA3;
+      --orange: #FF6B35;
+      --orange-glow: rgba(255,107,53,0.35);
+      --green:  #22C55E;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100vh; background: var(--dark); color: var(--text);
+      font-family: 'Inter', sans-serif; display: flex; flex-direction: column;
+    }
+
+    /* ── Background ── */
+    .bg-orb {
+      position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0;
+    }
+    .bg-orb-1 { width: 500px; height: 500px; top: -150px; left: -100px; background: rgba(255,107,53,0.07); }
+    .bg-orb-2 { width: 400px; height: 400px; bottom: -100px; right: -80px; background: rgba(34,197,94,0.05); }
+
+    /* ── Nav ── */
+    nav {
+      padding: 16px 24px; display: flex; align-items: center;
+      border-bottom: 1px solid var(--border); position: relative; z-index: 10;
+    }
+    .logo { font-size: 1.15rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .logo span { color: var(--orange); }
+    .logo em { display: block; font-style: normal; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 1px; }
+
+    /* ── Main ── */
+    main {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px; position: relative; z-index: 1;
+    }
+    .login-card {
+      width: 100%; max-width: 420px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 32px;
+    }
+
+    /* ── Steps ── */
+    .step-icon  { font-size: 2rem; margin-bottom: 10px; }
+    .step-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
+    .step-sub   { font-size: 0.83rem; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+
+    /* ── Form elements ── */
+    .form-label { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .form-input {
+      width: 100%; padding: 13px 16px; background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border); border-radius: 12px; color: var(--text);
+      font-size: 1rem; font-family: inherit; transition: border-color 0.15s;
+    }
+    .form-input:focus { outline: none; border-color: var(--orange); }
+    .form-input::placeholder { color: var(--muted); }
+
+    /* ── PIN boxes ── */
+    .pin-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 6px; }
+    .pin-box {
+      width: 56px; height: 64px; text-align: center; font-size: 1.5rem; font-weight: 700;
+      background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
+      border-radius: 12px; color: var(--text); font-family: inherit;
+      caret-color: var(--orange); transition: border-color 0.15s; -webkit-appearance: none;
+    }
+    .pin-box:focus { outline: none; border-color: var(--orange); }
+    .pin-box.filled { border-color: rgba(255,107,53,0.5); }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      width: 100%; padding: 14px; background: var(--orange); color: white;
+      border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; margin-top: 24px;
+      box-shadow: 0 8px 30px rgba(255,107,53,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-primary:hover   { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(255,107,53,0.4); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-back {
+      background: none; border: none; color: var(--muted); font-size: 0.82rem;
+      cursor: pointer; font-family: inherit; margin-top: 16px; display: block;
+      width: 100%; text-align: center; transition: color 0.15s;
+    }
+    .btn-back:hover { color: var(--text); }
+
+    /* ── Error / note ── */
+    .err-msg  { font-size: 0.8rem; color: #EF4444; text-align: center; min-height: 18px; margin-top: 10px; }
+    .form-note { font-size: 0.78rem; color: var(--muted); text-align: center; margin-top: 20px; }
+    .form-note a { color: var(--orange); text-decoration: none; }
+
+    /* ── Success ── */
+    .success-wrap { text-align: center; }
+    .success-wrap .icon { font-size: 3rem; margin-bottom: 14px; }
+    .success-wrap h2 { font-size: 1.3rem; font-weight: 800; color: var(--green); margin-bottom: 8px; }
+    .success-wrap p { font-size: 0.85rem; color: var(--muted); }
+
+    @media (max-width: 480px) {
+      .login-card { padding: 28px 20px; }
+      .pin-box { width: 48px; height: 56px; font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<nav>
+  <a href="/" class="logo">Streak<span>Prep</span><em>Small Streaks. Big Leaps.</em></a>
+</nav>
+
+<main>
+  <div class="login-card">
+
+    <!-- Step 1: Phone -->
+    <div id="step-phone">
+      <div class="step-icon">👋</div>
+      <div class="step-title">Welcome back</div>
+      <p class="step-sub">Enter your WhatsApp number to continue</p>
+      <label class="form-label">WhatsApp Number</label>
+      <input type="tel" id="l-phone" class="form-input" placeholder="+91 98765 43210" />
+      <div class="err-msg" id="phone-err"></div>
+      <button class="btn-primary" onclick="submitPhone()">Continue →</button>
+      <p class="form-note">New here? <a href="/#register">Start your free trial →</a></p>
+    </div>
+
+    <!-- Step 2: PIN -->
+    <div id="step-pin" style="display:none">
+      <div class="step-icon">🔐</div>
+      <div class="step-title">Enter your PIN</div>
+      <p class="step-sub" id="pin-sub">Enter your 4-digit PIN to login</p>
+      <div class="pin-row" id="l-pin-boxes">
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+      </div>
+      <div class="err-msg" id="pin-err"></div>
+      <button class="btn-primary" id="pin-btn" onclick="submitPin()">Login →</button>
+      <button class="btn-back" onclick="goBack()">← Use a different number</button>
+      <p class="form-note">Forgot PIN? <a href="#" onclick="startReset(event)">Reset it →</a></p>
+    </div>
+
+    <!-- Step 3: Reset PIN -->
+    <div id="step-reset" style="display:none">
+      <div class="step-icon">🔑</div>
+      <div class="step-title">Reset your PIN</div>
+      <p class="step-sub" id="reset-sub">Enter the code we sent you, then choose a new PIN</p>
+
+      <label class="form-label">Verification code</label>
+      <div class="pin-row" id="r-otp-boxes">
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+      </div>
+
+      <label class="form-label" style="margin-top:20px">New 4-digit PIN</label>
+      <div class="pin-row" id="r-pin-boxes">
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+      </div>
+
+      <div class="err-msg" id="reset-err"></div>
+      <button class="btn-primary" id="reset-btn" onclick="submitReset()">Set new PIN →</button>
+      <button class="btn-back" onclick="cancelReset()">← Back to login</button>
+      <p class="form-note">Didn't get it? <a href="#" onclick="resendReset(event)">Resend code</a></p>
+    </div>
+
+    <!-- Success -->
+    <div id="step-success" style="display:none" class="success-wrap">
+      <div class="icon">✅</div>
+      <h2>Logged in!</h2>
+      <p>Taking you to your dashboard…</p>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  let loginPhone = '';
+
+  // ── Check if already logged in ──
+  (function () {
+    const session = localStorage.getItem('sp_session');
+    if (session) window.location.href = '/dashboard';
+  })();
+
+  // ── PIN box helpers ──
+  function setupPinBoxes(containerId) {
+    const boxes = [...document.querySelectorAll('#' + containerId + ' .pin-box')];
+    boxes.forEach((box, i) => {
+      box.addEventListener('input', e => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val ? val[val.length - 1] : '';
+        e.target.classList.toggle('filled', !!e.target.value);
+        if (e.target.value && i < boxes.length - 1) boxes[i + 1].focus();
+      });
+      box.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+      });
+      box.addEventListener('paste', e => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+        boxes.forEach((b, j) => { b.value = text[j] || ''; b.classList.toggle('filled', !!b.value); });
+        boxes[Math.min(text.length, boxes.length - 1)].focus();
+      });
+    });
+  }
+
+  function getPinValue(containerId) {
+    return [...document.querySelectorAll('#' + containerId + ' .pin-box')].map(b => b.value).join('');
+  }
+
+  function showStep(step) {
+    ['step-phone', 'step-pin', 'step-reset', 'step-success'].forEach(id => {
+      document.getElementById(id).style.display = id === step ? '' : 'none';
+    });
+  }
+
+  function goBack() {
+    document.querySelectorAll('#l-pin-boxes .pin-box').forEach(b => { b.value = ''; b.classList.remove('filled'); });
+    document.getElementById('pin-err').textContent = '';
+    showStep('step-phone');
+  }
+
+  // Human-friendly wait time from a retryAfter value in seconds.
+  function formatWait(secs) {
+    secs = parseInt(secs) || 0;
+    if (secs >= 3600) { const h = Math.round(secs / 3600); return `about ${h} hour${h === 1 ? '' : 's'}`; }
+    if (secs >= 60)   { const m = Math.ceil(secs / 60);    return `about ${m} minute${m === 1 ? '' : 's'}`; }
+    return `${Math.max(1, secs)} second${secs === 1 ? '' : 's'}`;
+  }
+
+  // ── Step 1: Submit phone ──
+  async function submitPhone() {
+    const raw   = document.getElementById('l-phone').value.trim();
+    const errEl = document.getElementById('phone-err');
+    errEl.textContent = '';
+    if (!raw) { errEl.textContent = 'Please enter your WhatsApp number.'; return; }
+
+    const btn = document.querySelector('#step-phone .btn-primary');
+    btn.disabled = true; btn.textContent = 'Checking…';
+
+    try {
+      const deviceToken = localStorage.getItem('sp_device') || '';
+      const res  = await fetch('/api/login/init', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: raw, deviceToken }),
+      });
+      const data = await res.json();
+
+      if (res.status === 404) {
+        btn.disabled = false; btn.textContent = 'Continue →';
+        errEl.innerHTML = 'Number not registered. <a href="/#register" style="color:var(--orange)">Sign up free →</a>';
+        return;
+      }
+      if (res.status === 429) {
+        btn.disabled = false; btn.textContent = 'Continue →';
+        errEl.textContent = data.error === 'cooldown'
+          ? `Please wait ${formatWait(data.retryAfter || 60)} before requesting another code.`
+          : `Too many attempts. Please try again in ${formatWait(data.retryAfter || 3600)}.`;
+        return;
+      }
+      if (!res.ok) {
+        btn.disabled = false; btn.textContent = 'Continue →';
+        errEl.textContent = 'Something went wrong. Please try again.';
+        return;
+      }
+
+      loginPhone = raw;
+      const isTrusted = data.method === 'pin';
+      document.getElementById('pin-sub').textContent = isTrusted
+        ? 'Trusted device detected — just enter your PIN'
+        : 'Enter your 4-digit PIN to login';
+
+      btn.disabled = false; btn.textContent = 'Continue →';
+      showStep('step-pin');
+      setupPinBoxes('l-pin-boxes');
+      setTimeout(() => document.querySelector('#l-pin-boxes .pin-box').focus(), 100);
+
+    } catch {
+      btn.disabled = false; btn.textContent = 'Continue →';
+      errEl.textContent = 'Network error. Please try again.';
+    }
+  }
+
+  // ── Step 2: Submit PIN ──
+  async function submitPin() {
+    const pin   = getPinValue('l-pin-boxes');
+    const errEl = document.getElementById('pin-err');
+    errEl.textContent = '';
+    if (pin.length !== 4) { errEl.textContent = 'Enter all 4 digits.'; return; }
+
+    const btn = document.getElementById('pin-btn');
+    btn.disabled = true; btn.textContent = 'Logging in…';
+
+    try {
+      const deviceToken = localStorage.getItem('sp_device') || '';
+      const res  = await fetch('/api/login/verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: loginPhone,
+          pin,
+          method: 'pin',
+          deviceToken: deviceToken || undefined,
+          trustDevice: true,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.status === 401) {
+        btn.disabled = false; btn.textContent = 'Login →';
+        errEl.textContent = data.error === 'pin_incorrect' ? 'Incorrect PIN. Please try again.' : 'Session expired. Please try again.';
+        return;
+      }
+      if (res.status === 429) {
+        btn.disabled = false; btn.textContent = 'Login →';
+        errEl.textContent = `Too many attempts. Please try again in ${formatWait(data.retryAfter || 3600)}.`;
+        return;
+      }
+      if (!res.ok) {
+        btn.disabled = false; btn.textContent = 'Login →';
+        errEl.textContent = 'Something went wrong. Please try again.';
+        return;
+      }
+
+      if (data.sessionToken) localStorage.setItem('sp_session', data.sessionToken);
+      if (data.deviceToken)  localStorage.setItem('sp_device',  data.deviceToken);
+
+      showStep('step-success');
+      setTimeout(() => window.location.href = '/dashboard', 1200);
+
+    } catch {
+      btn.disabled = false; btn.textContent = 'Login →';
+      errEl.textContent = 'Network error. Please try again.';
+    }
+  }
+
+  // ── Forgot PIN: send reset code ──
+  function channelLabel(channel) {
+    if (channel === 'whatsapp') return 'WhatsApp';
+    if (channel === 'sms')      return 'SMS';
+    return 'WhatsApp/SMS';
+  }
+
+  async function sendResetCode() {
+    const res  = await fetch('/api/account/reset-pin/init', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: loginPhone }),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { res, data };
+  }
+
+  async function startReset(e) {
+    if (e) e.preventDefault();
+    if (!loginPhone) { showStep('step-phone'); return; }
+    const link = document.querySelector('#step-pin .form-note a');
+    if (link) link.textContent = 'Sending…';
+    try {
+      const { res, data } = await sendResetCode();
+      if (link) link.textContent = 'Reset it →';
+      if (res.status === 429) {
+        document.getElementById('pin-err').textContent = `Please wait ${formatWait(data.retryAfter || 30)} before requesting a code.`;
+        return;
+      }
+      if (!res.ok) {
+        document.getElementById('pin-err').textContent = 'Could not start reset. Please try again.';
+        return;
+      }
+      document.getElementById('reset-sub').textContent =
+        `Enter the code sent to your ${channelLabel(data.channel)}, then choose a new PIN`;
+      document.getElementById('reset-err').textContent = '';
+      showStep('step-reset');
+      setupPinBoxes('r-otp-boxes');
+      setupPinBoxes('r-pin-boxes');
+      setTimeout(() => document.querySelector('#r-otp-boxes .pin-box').focus(), 100);
+    } catch {
+      if (link) link.textContent = 'Reset it →';
+      document.getElementById('pin-err').textContent = 'Network error. Please try again.';
+    }
+  }
+
+  async function resendReset(e) {
+    if (e) e.preventDefault();
+    const errEl = document.getElementById('reset-err');
+    errEl.style.color = 'var(--muted)';
+    errEl.textContent = 'Sending…';
+    try {
+      const { res, data } = await sendResetCode();
+      if (res.status === 429) { errEl.style.color = '#EF4444'; errEl.textContent = `Please wait ${formatWait(data.retryAfter || 30)} before requesting another code.`; return; }
+      if (!res.ok) { errEl.style.color = '#EF4444'; errEl.textContent = 'Could not resend. Please try again.'; return; }
+      errEl.textContent = `New code sent to your ${channelLabel(data.channel)}.`;
+    } catch { errEl.style.color = '#EF4444'; errEl.textContent = 'Network error. Please try again.'; }
+  }
+
+  function cancelReset() {
+    ['r-otp-boxes', 'r-pin-boxes'].forEach(id =>
+      document.querySelectorAll('#' + id + ' .pin-box').forEach(b => { b.value = ''; b.classList.remove('filled'); }));
+    document.getElementById('reset-err').textContent = '';
+    showStep('step-pin');
+  }
+
+  async function submitReset() {
+    const otp    = getPinValue('r-otp-boxes');
+    const newPin = getPinValue('r-pin-boxes');
+    const errEl  = document.getElementById('reset-err');
+    errEl.style.color = '#EF4444';
+    errEl.textContent = '';
+    if (otp.length !== 4)    { errEl.textContent = 'Enter the 4-digit code.'; return; }
+    if (newPin.length !== 4) { errEl.textContent = 'Choose a 4-digit PIN.'; return; }
+
+    const btn = document.getElementById('reset-btn');
+    btn.disabled = true; btn.textContent = 'Setting…';
+    try {
+      const res  = await fetch('/api/account/reset-pin/complete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: loginPhone, otp, newPin, trustDevice: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 401) { btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = 'Incorrect or expired code. Try resending.'; return; }
+      if (res.status === 429) { btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = `Too many attempts. Try again in ${formatWait(data.retryAfter || 3600)}.`; return; }
+      if (!res.ok)            { btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = 'Something went wrong. Please try again.'; return; }
+
+      if (data.sessionToken) localStorage.setItem('sp_session', data.sessionToken);
+      if (data.deviceToken)  localStorage.setItem('sp_device',  data.deviceToken);
+      showStep('step-success');
+      setTimeout(() => window.location.href = '/dashboard', 1200);
+    } catch {
+      btn.disabled = false; btn.textContent = 'Set new PIN →';
+      errEl.textContent = 'Network error. Please try again.';
+    }
+  }
+
+  // Allow Enter key on phone field
+  document.getElementById('l-phone').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitPhone();
+  });
+</script>
+</body>
+</html>

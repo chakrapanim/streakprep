@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — StreakPrep</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --dark: #0B0F1A; --card: #111827; --card2: #162032;
+      --border: #1E2A3B; --text: #F0F4FF; --muted: #6B7FA3;
+      --orange: #FF6B35; --orange-glow: rgba(255,107,53,0.25);
+      --green: #22C55E; --red: #EF4444; --yellow: #F59E0B; --blue: #3B82F6;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100vh; background: var(--dark); color: var(--text); font-family: 'Inter', sans-serif; }
+
+    nav { padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .logo { font-size: 1.1rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .logo span { color: var(--orange); }
+    .admin-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: rgba(255,107,53,0.15); color: var(--orange); border: 1px solid rgba(255,107,53,0.3); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .btn-nav { font-size: 0.78rem; color: var(--muted); background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.15s; }
+    .btn-nav:hover { color: var(--red); }
+
+    /* ── Login ── */
+    .login-wrap { min-height: calc(100vh - 53px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .login-card { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 32px 28px; }
+    .login-icon  { font-size: 2rem; margin-bottom: 12px; }
+    .login-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 6px; }
+    .login-sub   { font-size: 0.82rem; color: var(--muted); margin-bottom: 24px; }
+
+    /* ── Forms ── */
+    .form-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; margin-top: 14px; }
+    .form-label:first-of-type { margin-top: 0; }
+    .form-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1.5px solid var(--border); border-radius: 12px; color: var(--text); font-size: 0.92rem; font-family: inherit; transition: border-color 0.15s; }
+    .form-input:focus { outline: none; border-color: var(--orange); }
+    .form-input::placeholder { color: var(--muted); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-primary { width: 100%; padding: 13px; background: var(--orange); color: white; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 16px; box-shadow: 0 6px 24px var(--orange-glow); transition: transform 0.15s; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .err-msg { font-size: 0.8rem; color: var(--red); margin-top: 10px; text-align: center; min-height: 18px; }
+
+    /* ── Dashboard layout ── */
+    .page { max-width: 1020px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    @media (max-width: 600px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+    .stat-num   { font-size: 1.8rem; font-weight: 900; line-height: 1; }
+    .stat-label { font-size: 0.7rem; color: var(--muted); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-card.orange .stat-num { color: var(--orange); }
+    .stat-card.green  .stat-num { color: var(--green); }
+    .stat-card.blue   .stat-num { color: var(--blue); }
+    .stat-card.yellow .stat-num { color: var(--yellow); }
+    .stat-card.red    .stat-num { color: var(--red); }
+
+    /* Toolbar */
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; }
+    .search-input { flex: 1; padding: 11px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; color: var(--text); font-size: 0.88rem; font-family: inherit; transition: border-color 0.15s; }
+    .search-input:focus { outline: none; border-color: var(--orange); }
+    .search-input::placeholder { color: var(--muted); }
+    .btn-search  { padding: 11px 20px; background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; color: var(--text); font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: border-color 0.15s; }
+    .btn-search:hover { border-color: var(--orange); color: var(--orange); }
+    .btn-create-reviewer { padding: 11px 18px; background: var(--blue); color: white; border: none; border-radius: 12px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: opacity 0.15s; }
+    .btn-create-reviewer:hover { opacity: 0.85; }
+
+    /* Table */
+    .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .table-header { display: grid; grid-template-columns: 2.2fr 0.8fr 0.8fr 1.4fr 1fr 120px; padding: 10px 16px; background: var(--card2); font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .user-row { display: grid; grid-template-columns: 2.2fr 0.8fr 0.8fr 1.4fr 1fr 120px; padding: 12px 16px; border-top: 1px solid var(--border); align-items: center; transition: background 0.1s; }
+    .user-row:hover { background: rgba(255,255,255,0.02); }
+    .user-name  { font-weight: 700; font-size: 0.88rem; }
+    .user-phone { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+    .cell { font-size: 0.82rem; color: var(--muted); }
+    .pill { display: inline-block; padding: 3px 8px; border-radius: 8px; font-size: 0.68rem; font-weight: 700; }
+    .pill.trial    { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .pill.active   { background: rgba(34,197,94,0.12);  color: var(--green); }
+    .pill.expired  { background: rgba(239,68,68,0.12);  color: var(--red); }
+    .pill.none     { background: rgba(107,127,163,0.1);  color: var(--muted); }
+    .pill.reviewer { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .pill.red      { background: rgba(239,68,68,0.15);  color: var(--red); }
+    .flag-card-admin { background: var(--card); border: 1px solid rgba(239,68,68,0.25); border-radius: 14px; padding: 16px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+    .flag-card-admin.selected { border-color: var(--red); background: rgba(239,68,68,0.05); }
+    .flag-checkbox { flex-shrink: 0; width: 18px; height: 18px; accent-color: var(--red); margin-top: 2px; cursor: pointer; }
+    .flag-body { flex: 1; min-width: 0; }
+    .bulk-bar {
+      position: sticky; bottom: 16px; margin-top: 12px;
+      background: var(--card2); border: 1px solid var(--border); border-radius: 14px;
+      padding: 12px 16px; display: none; align-items: center; justify-content: space-between; gap: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .bulk-bar.visible { display: flex; }
+    .bulk-count { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+    .bulk-actions { display: flex; gap: 8px; }
+    .flag-select-all { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); cursor: pointer; margin-bottom: 10px; }
+    .actions-cell { display: flex; gap: 5px; flex-wrap: wrap; }
+    .btn-action { padding: 5px 10px; border-radius: 7px; font-size: 0.72rem; font-weight: 700; cursor: pointer; font-family: inherit; border: 1.5px solid; transition: all 0.15s; white-space: nowrap; }
+    .btn-action.make   { border-color: rgba(59,130,246,0.4);  color: var(--blue); background: rgba(59,130,246,0.08); }
+    .btn-action.make:hover   { background: rgba(59,130,246,0.18); }
+    .btn-action.revoke { border-color: rgba(245,158,11,0.4);  color: var(--yellow); background: rgba(245,158,11,0.08); }
+    .btn-action.revoke:hover { background: rgba(245,158,11,0.18); }
+    .btn-action.del    { border-color: rgba(239,68,68,0.35);  color: var(--red); background: rgba(239,68,68,0.06); }
+    .btn-action.del:hover    { background: rgba(239,68,68,0.16); }
+
+    .pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; font-size: 0.82rem; color: var(--muted); }
+    .page-btn { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; transition: border-color 0.15s; }
+    .page-btn:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
+    .page-btn:disabled { opacity: 0.4; cursor: default; }
+    .empty   { text-align: center; padding: 40px; color: var(--muted); font-size: 0.85rem; }
+    .loading { text-align: center; padding: 60px; color: var(--muted); }
+
+    /* ── Modal ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 4px; }
+    .modal-sub   { font-size: 0.82rem; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+    .class-grid  { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; margin-bottom: 4px; }
+    .class-chip  { padding: 10px 4px; border-radius: 10px; border: 1.5px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; transition: all 0.15s; text-align: center; }
+    .class-chip.active { border-color: var(--blue); color: var(--blue); background: rgba(59,130,246,0.1); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-confirm { flex: 1; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 12px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+    .btn-confirm.orange-btn { background: var(--orange); }
+    .btn-confirm:hover { opacity: 0.85; }
+    .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-cancel-modal { flex: 1; padding: 12px; background: transparent; color: var(--muted); border: 1.5px solid var(--border); border-radius: 12px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .modal-err { font-size: 0.78rem; color: var(--red); margin-top: 10px; min-height: 16px; text-align: center; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Streak<span>Prep</span></a>
+  <div class="nav-right">
+    <span class="admin-badge">Admin</span>
+    <button class="btn-nav" onclick="logout()">Log out</button>
+  </div>
+</nav>
+
+<div id="root"></div>
+
+<script>
+  const ALL_CLASSES = [6,7,8,9,10];
+  let adminSecret = localStorage.getItem('sp_admin') || '';
+  let currentPage = 1;
+  let searchQuery = '';
+  let totalUsers  = 0;
+  const PAGE_SIZE = 20;
+
+  // Shared modal state
+  let modalMode    = null; // 'create' | 'reviewer'
+  let modalStudent = null;
+  let modalClasses = [6,7,8,9,10];
+
+  function authHeaders() {
+    return { 'Authorization': 'Admin ' + adminSecret, 'Content-Type': 'application/json' };
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────
+  async function boot() {
+    if (!adminSecret) { renderLogin(); return; }
+    const res = await fetch('/api/admin/stats', { headers: authHeaders() }).catch(() => null);
+    if (!res || res.status === 401) { adminSecret = ''; localStorage.removeItem('sp_admin'); renderLogin(); return; }
+    renderDashboard(await res.json());
+  }
+
+  // ── Login ──────────────────────────────────────────────────────
+  function renderLogin() {
+    document.getElementById('root').innerHTML = `
+      <div class="login-wrap">
+        <div class="login-card">
+          <div class="login-icon">🔐</div>
+          <div class="login-title">Admin Access</div>
+          <p class="login-sub">Enter the admin secret to continue.</p>
+          <label class="form-label">Admin Secret</label>
+          <input type="password" id="secret-input" class="form-input" placeholder="Enter secret…"
+            onkeydown="if(event.key==='Enter') submitLogin()" />
+          <p class="err-msg" id="login-err"></p>
+          <button class="btn-primary" onclick="submitLogin()">Access Dashboard →</button>
+        </div>
+      </div>`;
+    setTimeout(() => document.getElementById('secret-input')?.focus(), 80);
+  }
+
+  async function submitLogin() {
+    const val = document.getElementById('secret-input')?.value.trim();
+    if (!val) return;
+    const btn = document.querySelector('#root .btn-primary');
+    btn.disabled = true; btn.textContent = 'Verifying…';
+    const res = await fetch('/api/admin/stats', { headers: { 'Authorization': 'Admin ' + val } });
+    if (res.status === 401) {
+      btn.disabled = false; btn.textContent = 'Access Dashboard →';
+      document.getElementById('login-err').textContent = 'Incorrect secret. Try again.';
+      return;
+    }
+    adminSecret = val;
+    localStorage.setItem('sp_admin', val);
+    renderDashboard(await res.json());
+  }
+
+  function logout() {
+    localStorage.removeItem('sp_admin');
+    adminSecret = '';
+    renderLogin();
+  }
+
+  // ── Dashboard ──────────────────────────────────────────────────
+  function renderDashboard(stats) {
+    document.getElementById('root').innerHTML = `
+      <div class="page">
+        <div class="stats-row">
+          <div class="stat-card orange"><div class="stat-num">${stats.totalStudents}</div><div class="stat-label">Total Students</div></div>
+          <div class="stat-card yellow"><div class="stat-num">${stats.trialsActive}</div><div class="stat-label">Active Trials</div></div>
+          <div class="stat-card green"><div class="stat-num">${stats.subsActive}</div><div class="stat-label">Paid Subscribers</div></div>
+          <div class="stat-card blue"><div class="stat-num">${stats.reviewers}</div><div class="stat-label">Reviewers</div></div>
+          <div class="stat-card orange"><div class="stat-num">${stats.quizzesToday}</div><div class="stat-label">Quizzes Today</div></div>
+          <div class="stat-card red"><div class="stat-num">${stats.expired}</div><div class="stat-label">Expired / Lapsed</div></div>
+        </div>
+
+        <div class="toolbar">
+          <input type="text" id="search-input" class="search-input"
+            placeholder="Search by name or phone…"
+            onkeydown="if(event.key==='Enter') doSearch()" />
+          <button class="btn-search" onclick="doSearch()">Search</button>
+          <button class="btn-create-reviewer" onclick="openCreateModal()">+ Create Reviewer</button>
+        </div>
+
+        <div id="users-area"><div class="loading">Loading users…</div></div>
+
+        <div style="margin-top:32px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:0.9rem;font-weight:800">Flagged Questions</div>
+            <button onclick="loadFlags()" style="font-size:0.75rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:inherit">Refresh</button>
+          </div>
+          <div id="flags-area"><div class="loading">Loading flags…</div></div>
+        </div>
+      </div>`;
+    loadUsers();
+    loadFlags();
+  }
+
+  async function loadUsers(page = 1) {
+    currentPage = page;
+    document.getElementById('users-area').innerHTML = '<div class="loading">Loading…</div>';
+    const params = new URLSearchParams({ page, ...(searchQuery && { q: searchQuery }) });
+    const res  = await fetch('/api/admin/users?' + params, { headers: authHeaders() });
+    const data = await res.json();
+    totalUsers = data.total || 0;
+    renderTable(data.users || []);
+  }
+
+  function doSearch() {
+    searchQuery = document.getElementById('search-input').value.trim();
+    loadUsers(1);
+  }
+
+  function renderTable(users) {
+    if (!users.length) {
+      document.getElementById('users-area').innerHTML = '<div class="empty">No users found.</div>';
+      return;
+    }
+    const rows = users.map(u => {
+      const subCls = u.subLabel.startsWith('Trial') ? 'trial'
+        : u.subLabel.startsWith('Active') ? 'active'
+        : u.subLabel === 'None' ? 'none' : 'expired';
+      const reviewerPill = u.isReviewer ? ` <span class="pill reviewer">Reviewer</span>` : '';
+      const reviewerBtn  = u.isReviewer
+        ? `<button class="btn-action revoke" onclick="revokeReviewer(${u.studentId},'${esc(u.name)}')">Revoke</button>`
+        : `<button class="btn-action make"   onclick="openReviewerModal(${u.studentId},'${esc(u.name)}',${u.class})">+ Reviewer</button>`;
+      return `
+        <div class="user-row">
+          <div>
+            <div class="user-name">${esc(u.name)}${reviewerPill}</div>
+            <div class="user-phone">${esc(u.phone)}</div>
+          </div>
+          <div class="cell">Class ${u.class}</div>
+          <div class="cell">${u.subjects.length} subj</div>
+          <div><span class="pill ${subCls}">${esc(u.subLabel)}</span></div>
+          <div class="cell">${u.reviewerClasses ? `Cl. ${u.reviewerClasses.join(',')}` : '—'}</div>
+          <div class="actions-cell">
+            ${reviewerBtn}
+            <button class="btn-action del" onclick="deleteUser(${u.studentId},'${esc(u.name)}')">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    const totalPages = Math.ceil(totalUsers / PAGE_SIZE);
+    const pager = totalPages > 1 ? `
+      <div class="pagination">
+        <button class="page-btn" onclick="loadUsers(${currentPage-1})" ${currentPage<=1?'disabled':''}>← Prev</button>
+        <span>Page ${currentPage} of ${totalPages} &nbsp;·&nbsp; ${totalUsers} users</span>
+        <button class="page-btn" onclick="loadUsers(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>Next →</button>
+      </div>` : '';
+
+    document.getElementById('users-area').innerHTML = `
+      <div class="table-wrap">
+        <div class="table-header">
+          <div>Student</div><div>Class</div><div>Subjects</div><div>Subscription</div><div>Review classes</div><div>Actions</div>
+        </div>
+        ${rows}
+      </div>${pager}`;
+  }
+
+  // ── Create Reviewer Modal ──────────────────────────────────────
+  function openCreateModal() {
+    modalMode    = 'create';
+    modalClasses = [6,7,8,9,10];
+    renderModal();
+  }
+
+  function renderModal() {
+    removeModal();
+    const el = document.createElement('div');
+    el.id = 'modal-overlay';
+    el.className = 'modal-overlay';
+
+    if (modalMode === 'create') {
+      el.innerHTML = `
+        <div class="modal-card">
+          <div class="modal-title">Create Reviewer Account</div>
+          <p class="modal-sub">Creates a new account directly — the reviewer just goes to streakprep.ai/login and enters their phone + PIN.</p>
+
+          <label class="form-label">Full Name</label>
+          <input type="text" id="cr-name" class="form-input" placeholder="e.g. Riddhimaa Sharma" />
+
+          <label class="form-label">WhatsApp Number</label>
+          <input type="tel" id="cr-phone" class="form-input" placeholder="+91 98765 43210" />
+
+          <label class="form-label">Login PIN (4 digits)</label>
+          <input type="text" id="cr-pin" class="form-input" maxlength="4" inputmode="numeric" placeholder="e.g. 1234" />
+
+          <label class="form-label">Allowed Review Classes</label>
+          <div class="class-grid" id="cr-class-grid">
+            ${ALL_CLASSES.map(c=>`
+              <button class="class-chip ${modalClasses.includes(c)?'active':''}" onclick="toggleModalClass(${c})">${c}</button>
+            `).join('')}
+          </div>
+          <p style="font-size:0.73rem;color:var(--muted);margin-top:8px">Reviewer can quiz questions from all ticked classes.</p>
+
+          <p class="modal-err" id="modal-err"></p>
+          <div class="modal-actions">
+            <button class="btn-cancel-modal" onclick="removeModal()">Cancel</button>
+            <button class="btn-confirm orange-btn" id="modal-confirm-btn" onclick="confirmCreate()">Create Account →</button>
+          </div>
+        </div>`;
+    } else {
+      // Reviewer role modal (for existing user)
+      el.innerHTML = `
+        <div class="modal-card">
+          <div class="modal-title">Make Reviewer</div>
+          <p class="modal-sub"><strong>${esc(modalStudent.name)}</strong> will get reviewer access for the selected classes.</p>
+          <label class="form-label">Allowed Classes</label>
+          <div class="class-grid">
+            ${ALL_CLASSES.map(c=>`
+              <button class="class-chip ${modalClasses.includes(c)?'active':''}" onclick="toggleModalClass(${c})">${c}</button>
+            `).join('')}
+          </div>
+          <p style="font-size:0.73rem;color:var(--muted);margin-top:8px">Reviewer can quiz any subject across selected classes, with no daily limit.</p>
+          <p class="modal-err" id="modal-err"></p>
+          <div class="modal-actions">
+            <button class="btn-cancel-modal" onclick="removeModal()">Cancel</button>
+            <button class="btn-confirm" id="modal-confirm-btn" onclick="confirmReviewer()">Confirm →</button>
+          </div>
+        </div>`;
+    }
+
+    document.body.appendChild(el);
+    el.addEventListener('click', e => { if (e.target === el) removeModal(); });
+  }
+
+  function toggleModalClass(c) {
+    const idx = modalClasses.indexOf(c);
+    if (idx >= 0) {
+      if (modalClasses.length <= 1) return;
+      modalClasses.splice(idx, 1);
+    } else {
+      modalClasses.push(c);
+      modalClasses.sort((a,b) => a-b);
+    }
+    // Re-render just the chip grid
+    const grid = document.getElementById('cr-class-grid') || document.querySelector('.class-grid');
+    if (grid) {
+      grid.innerHTML = ALL_CLASSES.map(cl=>`
+        <button class="class-chip ${modalClasses.includes(cl)?'active':''}" onclick="toggleModalClass(${cl})">${cl}</button>
+      `).join('');
+    }
+  }
+
+  async function confirmCreate() {
+    const name  = document.getElementById('cr-name')?.value.trim();
+    const phone = document.getElementById('cr-phone')?.value.trim();
+    const pin   = document.getElementById('cr-pin')?.value.trim();
+    const errEl = document.getElementById('modal-err');
+    errEl.textContent = '';
+
+    if (!name)               { errEl.textContent = 'Enter a name.'; return; }
+    if (!phone)              { errEl.textContent = 'Enter a phone number.'; return; }
+    if (!/^\d{4}$/.test(pin)){ errEl.textContent = 'PIN must be exactly 4 digits.'; return; }
+    if (modalClasses.length === 0) { errEl.textContent = 'Select at least one class.'; return; }
+
+    const btn = document.getElementById('modal-confirm-btn');
+    btn.disabled = true; btn.textContent = 'Creating…';
+
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+      const res = await fetch('/api/admin/create-reviewer', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ name, phone, pin, reviewerClasses: modalClasses }),
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      const data = await res.json();
+
+      if (!res.ok) {
+        btn.disabled = false; btn.textContent = 'Create Account →';
+        errEl.textContent = data.error === 'phone_already_registered'
+          ? 'This phone number is already registered.'
+          : data.error || 'Something went wrong.';
+        return;
+      }
+
+      removeModal();
+      const stats = await (await fetch('/api/admin/stats', { headers: authHeaders() })).json();
+      renderDashboard(stats);
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Create Account →';
+      errEl.textContent = e.name === 'AbortError' ? 'Request timed out — please try again.' : 'Network error — please try again.';
+    }
+  }
+
+  // ── Reviewer role for existing user ───────────────────────────
+  function openReviewerModal(studentId, name, studentClass) {
+    modalMode    = 'reviewer';
+    modalStudent = { id: studentId, name, class: studentClass };
+    modalClasses = [6,7,8,9,10];
+    renderModal();
+  }
+
+  async function confirmReviewer() {
+    const btn   = document.getElementById('modal-confirm-btn');
+    const errEl = document.getElementById('modal-err');
+    btn.disabled = true; btn.textContent = 'Saving…';
+
+    try {
+      const res = await fetch('/api/admin/reviewer', {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ studentId: modalStudent.id, isReviewer: true, reviewerClasses: modalClasses }),
+      });
+      if (!res.ok) { btn.disabled = false; btn.textContent = 'Confirm →'; errEl.textContent = 'Failed. Try again.'; return; }
+      removeModal();
+      loadUsers(currentPage);
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Confirm →';
+      errEl.textContent = 'Network error — please try again.';
+    }
+  }
+
+  async function revokeReviewer(studentId, name) {
+    if (!confirm(`Remove reviewer access from ${name}?`)) return;
+    await fetch('/api/admin/reviewer', {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ studentId, isReviewer: false }),
+    });
+    loadUsers(currentPage);
+  }
+
+  // ── Delete ─────────────────────────────────────────────────────
+  async function deleteUser(studentId, name) {
+    if (!confirm(`Delete "${name}"?\n\nThis will deactivate their account. They will no longer be able to log in.`)) return;
+    const res = await fetch('/api/admin/delete-user', {
+      method: 'DELETE',
+      headers: authHeaders(),
+      body: JSON.stringify({ studentId }),
+    });
+    if (!res.ok) { alert('Delete failed. Please try again.'); return; }
+    loadUsers(currentPage);
+  }
+
+  // ── Flags ────────────────────────────────────────────────────
+  async function loadFlags() {
+    const area = document.getElementById('flags-area');
+    if (!area) return;
+    area.innerHTML = '<div class="loading">Loading…</div>';
+    try {
+      const res  = await fetch('/api/admin/flags?status=pending', { headers: authHeaders() });
+      const data = await res.json();
+      renderFlags(data.flags || []);
+    } catch { area.innerHTML = '<div class="empty">Could not load flags.</div>'; }
+  }
+
+  const REASON_LABELS = {
+    wrong_answer: 'Wrong answer', bad_explanation: 'Bad explanation',
+    factual_error: 'Factual error', unclear_question: 'Unclear question', other: 'Other',
+  };
+  let selectedFlagIds = new Set();
+
+  function renderFlags(flags) {
+    const area = document.getElementById('flags-area');
+    selectedFlagIds = new Set();
+    if (!flags.length) {
+      area.innerHTML = '<div style="padding:16px 0;color:var(--muted);font-size:0.83rem">No pending flags. All clear.</div>';
+      return;
+    }
+
+    const cards = flags.map(f => `
+      <div class="flag-card-admin" id="flag-${f.flag_id}">
+        <input type="checkbox" class="flag-checkbox" data-id="${f.flag_id}" onchange="toggleFlagSelect(${f.flag_id},this.checked)" />
+        <div class="flag-body">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">
+            <div>
+              <span class="pill red" style="font-size:0.68rem">${REASON_LABELS[f.reason] || f.reason}</span>
+              <span style="font-size:0.72rem;color:var(--muted);margin-left:8px">by ${esc(f.reviewer_name)} · Cl.${f.grade} ${f.subject_can}</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button onclick="resolveFlags([${f.flag_id}],'dismiss')" class="btn-action make" style="font-size:0.72rem;padding:4px 10px">Dismiss</button>
+              <button onclick="resolveFlags([${f.flag_id}],'deactivate')" class="btn-action del" style="font-size:0.72rem;padding:4px 10px">Deactivate</button>
+            </div>
+          </div>
+          <div style="font-size:0.83rem;font-weight:600;margin-bottom:6px;color:var(--text)">${esc(f.question_text)}</div>
+          <div style="font-size:0.77rem;color:var(--muted);line-height:1.5">
+            A: ${esc(f.option_a)} &nbsp;·&nbsp; B: ${esc(f.option_b)} &nbsp;·&nbsp; C: ${esc(f.option_c)} &nbsp;·&nbsp; D: ${esc(f.option_d)}<br>
+            <span style="color:var(--green)">Correct: ${f.correct}</span> &nbsp;·&nbsp; Chapter: ${esc(f.chapter_key)}
+          </div>
+          ${f.note ? `<div style="margin-top:8px;font-size:0.77rem;color:var(--orange);font-style:italic">"${esc(f.note)}"</div>` : ''}
+          ${!f.is_active ? `<div style="margin-top:6px;font-size:0.72rem;color:var(--red);font-weight:700">Already deactivated</div>` : ''}
+        </div>
+      </div>`).join('');
+
+    area.innerHTML = `
+      <label class="flag-select-all">
+        <input type="checkbox" id="flag-select-all" onchange="toggleAllFlags(this.checked)" style="accent-color:var(--red);width:16px;height:16px" />
+        Select all ${flags.length} flags
+      </label>
+      ${cards}
+      <div class="bulk-bar" id="bulk-bar">
+        <span class="bulk-count" id="bulk-count">0 selected</span>
+        <div class="bulk-actions">
+          <button class="btn-action make" onclick="bulkResolve('dismiss')">Dismiss Selected</button>
+          <button class="btn-action del"  onclick="bulkResolve('deactivate')">Deactivate Selected</button>
+        </div>
+      </div>`;
+  }
+
+  function toggleFlagSelect(id, checked) {
+    checked ? selectedFlagIds.add(id) : selectedFlagIds.delete(id);
+    document.getElementById('flag-' + id)?.classList.toggle('selected', checked);
+    updateBulkBar();
+  }
+
+  function toggleAllFlags(checked) {
+    document.querySelectorAll('.flag-checkbox').forEach(cb => {
+      cb.checked = checked;
+      const id = parseInt(cb.dataset.id);
+      checked ? selectedFlagIds.add(id) : selectedFlagIds.delete(id);
+      document.getElementById('flag-' + id)?.classList.toggle('selected', checked);
+    });
+    updateBulkBar();
+  }
+
+  function updateBulkBar() {
+    const bar = document.getElementById('bulk-bar');
+    const count = document.getElementById('bulk-count');
+    if (!bar) return;
+    bar.classList.toggle('visible', selectedFlagIds.size > 0);
+    if (count) count.textContent = `${selectedFlagIds.size} selected`;
+  }
+
+  async function bulkResolve(action) {
+    if (!selectedFlagIds.size) return;
+    await resolveFlags([...selectedFlagIds], action);
+  }
+
+  async function resolveFlags(ids, action) {
+    ids.forEach(id => {
+      const card = document.getElementById('flag-' + id);
+      if (card) card.style.opacity = '0.4';
+    });
+    try {
+      await fetch('/api/admin/flags', {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ flagIds: ids, action }),
+      });
+      loadFlags();
+    } catch {
+      ids.forEach(id => {
+        const card = document.getElementById('flag-' + id);
+        if (card) card.style.opacity = '1';
+      });
+      alert('Failed. Please try again.');
+    }
+  }
+
+  function removeModal() { document.getElementById('modal-overlay')?.remove(); }
+
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  boot();
+</script>
+</body>
+</html>

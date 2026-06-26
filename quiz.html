@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz — StreakPrep</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --dark:   #0B0F1A; --card: #111827; --card2: #162032;
+      --border: #1E2A3B; --text: #F0F4FF; --muted: #6B7FA3;
+      --orange: #FF6B35; --orange-glow: rgba(255,107,53,0.3);
+      --green:  #22C55E; --green-dim: rgba(34,197,94,0.15);
+      --red:    #EF4444; --red-dim: rgba(239,68,68,0.15);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100vh; background: var(--dark); color: var(--text); font-family: 'Inter', sans-serif; }
+
+    /* ── Nav ── */
+    nav { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .logo { font-size: 1.1rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .logo span { color: var(--orange); }
+    .nav-back { font-size: 0.82rem; color: var(--muted); text-decoration: none; font-weight: 500; transition: color 0.15s; }
+    .nav-back:hover { color: var(--text); }
+
+    /* ── Layout ── */
+    .page { max-width: 640px; margin: 0 auto; padding: 24px 16px 80px; }
+
+    /* ── Progress bar ── */
+    .quiz-header { margin-bottom: 20px; }
+    .quiz-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .quiz-subject { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); }
+    .quiz-count { font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+    .progress-track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--orange); border-radius: 3px; transition: width 0.35s ease; }
+
+    /* ── Question card ── */
+    .q-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px 20px 20px; }
+    .q-text { font-size: 1.05rem; font-weight: 600; line-height: 1.55; margin-bottom: 22px; }
+
+    /* ── Options ── */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .opt-btn {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px; border-radius: 14px;
+      border: 1.5px solid var(--border); background: transparent;
+      color: var(--text); font-family: inherit; font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; text-align: left; transition: border-color 0.15s, background 0.15s;
+      width: 100%; line-height: 1.45;
+    }
+    .opt-btn:hover:not([disabled]) { border-color: rgba(255,107,53,0.5); background: rgba(255,107,53,0.05); }
+    .opt-btn[disabled] { cursor: default; }
+    .opt-btn .opt-key {
+      flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800; background: var(--card2); color: var(--muted);
+    }
+    .opt-btn.correct { border-color: var(--green); background: var(--green-dim); }
+    .opt-btn.correct .opt-key { background: var(--green); color: #fff; }
+    .opt-btn.wrong   { border-color: var(--red);   background: var(--red-dim); }
+    .opt-btn.wrong   .opt-key { background: var(--red);   color: #fff; }
+
+    /* ── Explanation ── */
+    .explanation {
+      margin-top: 16px; padding: 14px 16px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px;
+      font-size: 0.83rem; color: var(--muted); line-height: 1.6; display: none;
+    }
+    .explanation.show { display: block; }
+    .explanation strong { color: var(--text); }
+
+    /* ── Next button ── */
+    .next-btn {
+      width: 100%; margin-top: 16px; padding: 14px;
+      background: var(--orange); color: white; border: none; border-radius: 14px;
+      font-size: 0.95rem; font-weight: 800; cursor: pointer; font-family: inherit;
+      box-shadow: 0 8px 30px var(--orange-glow); transition: transform 0.15s, box-shadow 0.15s;
+      display: none;
+    }
+    .next-btn.show { display: block; }
+    .next-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 40px var(--orange-glow); }
+
+    /* ── Score screen ── */
+    .score-screen { text-align: center; padding: 40px 20px; }
+    .score-emoji { font-size: 3.5rem; margin-bottom: 16px; }
+    .score-main { font-size: 2.5rem; font-weight: 900; margin-bottom: 6px; }
+    .score-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 28px; }
+    .score-streak { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
+      border: 1.5px solid rgba(255,107,53,0.3); border-radius: 20px; margin-bottom: 32px;
+      font-size: 0.85rem; font-weight: 700; color: var(--orange); }
+    .score-actions { display: flex; flex-direction: column; gap: 10px; }
+    .btn-primary {
+      display: block; width: 100%; padding: 14px; background: var(--orange); color: white;
+      border: none; border-radius: 14px; font-size: 0.95rem; font-weight: 800;
+      cursor: pointer; font-family: inherit; text-decoration: none; text-align: center;
+      box-shadow: 0 8px 30px var(--orange-glow); transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-secondary {
+      display: block; width: 100%; padding: 13px; background: transparent; color: var(--muted);
+      border: 1.5px solid var(--border); border-radius: 14px; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; text-decoration: none; text-align: center;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-secondary:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    /* ── Diagram image ── */
+    .q-diagram {
+      width: 100%; max-width: 480px; margin: 0 auto 18px;
+      border-radius: 12px; overflow: hidden;
+      background: #fff; border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .q-diagram img {
+      width: 100%; height: auto; display: block;
+      max-height: 300px; object-fit: contain;
+    }
+
+    /* ── Loading / Error ── */
+    .loading { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .err-box { text-align: center; padding: 60px 20px; }
+    .err-box h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; }
+    .err-box p  { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+
+    /* ── Difficulty dot ── */
+    .difficulty-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      margin-right: 4px; vertical-align: middle;
+    }
+    .diff-easy   { background: var(--green); }
+    .diff-medium { background: var(--orange); }
+    .diff-hard   { background: var(--red); }
+
+    /* ── Reviewer picker ── */
+    .picker-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px 20px; }
+    .picker-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+    .picker-sub   { font-size: 0.82rem; color: var(--muted); margin-bottom: 20px; }
+    .picker-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+    .chip-row     { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .chip {
+      padding: 7px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+      border: 1.5px solid var(--border); color: var(--muted); cursor: pointer;
+      background: transparent; font-family: inherit; transition: all 0.15s;
+    }
+    .chip:hover  { border-color: rgba(255,107,53,0.5); color: var(--text); }
+    .chip.active { border-color: var(--orange); color: var(--orange); background: rgba(255,107,53,0.08); }
+    .reviewer-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+      border-radius: 12px; background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.25);
+      font-size: 0.72rem; font-weight: 700; color: var(--orange); margin-bottom: 16px; }
+
+    /* ── Scrollable chip row (chapters) ── */
+    .chip-row-scroll { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+    .chip-row-scroll::-webkit-scrollbar { height: 3px; }
+    .chip-row-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Question type badge ── */
+    .qtype-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700;
+    }
+    .qtype-pictorial { background: rgba(34,197,94,0.1); color: var(--green); }
+    .qtype-conceptual { background: var(--card2); color: var(--muted); }
+
+    /* ── NCERT reference link ── */
+    .ncert-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 10px; border-radius: 6px;
+      background: rgba(255,107,53,0.1); color: var(--orange);
+      text-decoration: none; font-size: 0.7rem; font-weight: 700;
+      transition: background 0.15s;
+    }
+    .ncert-link:hover { background: rgba(255,107,53,0.2); }
+
+    /* ── Back to picker button ── */
+    .back-to-picker {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-bottom: 10px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .back-to-picker:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    /* ── Flag button (reviewer only) ── */
+    .flag-btn {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 12px; padding: 8px 14px;
+      background: transparent; border: 1.5px solid rgba(239,68,68,0.35);
+      border-radius: 10px; color: var(--red); font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .flag-btn:hover { background: rgba(239,68,68,0.08); border-color: var(--red); }
+    .flag-btn.flagged { border-color: var(--red); background: rgba(239,68,68,0.12); opacity: 0.7; cursor: default; }
+
+    /* ── Flag modal ── */
+    .flag-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+    }
+    .flag-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+      padding: 24px 20px; width: 100%; max-width: 420px;
+    }
+    .flag-title { font-size: 1rem; font-weight: 800; margin-bottom: 6px; color: var(--red); }
+    .flag-sub   { font-size: 0.8rem; color: var(--muted); margin-bottom: 18px; }
+    .flag-reasons { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .flag-reason-btn {
+      padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+      background: transparent; color: var(--text); font-size: 0.84rem; font-weight: 500;
+      cursor: pointer; font-family: inherit; text-align: left; transition: all 0.15s;
+    }
+    .flag-reason-btn:hover, .flag-reason-btn.selected { border-color: var(--red); background: rgba(239,68,68,0.08); color: var(--red); }
+    .flag-note {
+      width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border); border-radius: 10px; color: var(--text);
+      font-size: 0.84rem; font-family: inherit; resize: none; margin-bottom: 14px;
+    }
+    .flag-note:focus { outline: none; border-color: var(--red); }
+    .flag-actions { display: flex; gap: 10px; }
+    .flag-cancel { flex: 1; padding: 11px; background: transparent; border: 1.5px solid var(--border); border-radius: 10px; color: var(--muted); font-size: 0.84rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .flag-submit { flex: 1; padding: 11px; background: var(--red); border: none; border-radius: 10px; color: white; font-size: 0.84rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .flag-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @media (max-width: 400px) {
+      .q-text { font-size: 0.95rem; }
+      .opt-btn { font-size: 0.84rem; padding: 12px 14px; }
+    }
+
+    /* ── Sidebar layout ── */
+    .outer { max-width: 960px; margin: 0 auto; }
+    .sidebar { display: none; }
+
+    @media (min-width: 860px) {
+      .outer { display: flex; gap: 24px; align-items: flex-start; padding: 28px 20px 80px; }
+      .sidebar {
+        display: flex; flex-direction: column; gap: 12px;
+        width: 230px; flex-shrink: 0;
+        position: sticky; top: 20px;
+      }
+      .page { flex: 1; min-width: 0; padding: 24px 0 0; }
+    }
+
+    .sb-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px 18px;
+    }
+    .sb-label {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+    }
+    .sb-name { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .sb-meta { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+    .sb-streak-num { font-size: 2.2rem; font-weight: 900; color: var(--orange); line-height: 1; }
+    .sb-streak-sub { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+    .sb-dots { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+    .sb-dot {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 800; transition: all 0.2s;
+    }
+    .sb-dot.pending { background: rgba(255,255,255,0.04); border: 1.5px dashed rgba(255,255,255,0.12); color: var(--muted); }
+    .sb-dot.correct { background: var(--green); color: white; }
+    .sb-dot.wrong   { background: var(--red);   color: white; }
+    .sb-tip-text { font-size: 0.82rem; color: var(--muted); line-height: 1.65; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Streak<span>Prep</span></a>
+  <a href="/dashboard" class="nav-back">← Dashboard</a>
+</nav>
+
+<div class="outer">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-card">
+      <div class="sb-name" id="sb-name"></div>
+      <div class="sb-meta" id="sb-meta"></div>
+    </div>
+    <div class="sb-card">
+      <div class="sb-label">🔥 Streak</div>
+      <div class="sb-streak-num" id="sb-streak">—</div>
+      <div class="sb-streak-sub" id="sb-streak-sub"></div>
+    </div>
+    <div class="sb-card">
+      <div class="sb-label">Today's session</div>
+      <div class="sb-dots" id="sb-dots"></div>
+    </div>
+    <div class="sb-card">
+      <div class="sb-label">💡 Tip</div>
+      <div class="sb-tip-text" id="sb-tip"></div>
+    </div>
+  </aside>
+
+  <div class="page" id="page">
+    <div class="loading">Loading quiz…</div>
+  </div>
+</div>
+
+<script>
+  const SUBJECT_LABELS = {
+    mathematics: 'Mathematics', science: 'Science',
+    english: 'English', hindi: 'Hindi', social_science: 'Social Science',
+  };
+
+  const TIPS = [
+    'NCERT summaries at chapter-end are board exam gold — read them after every session.',
+    'Questions you get wrong today are the ones to revisit tomorrow. That\'s how memory works.',
+    'NCERT diagrams are frequently in board papers. Pay attention to labelled figures.',
+    'Consistent 5-minute sessions beat sporadic 2-hour sessions every time.',
+    'If you\'re stuck, eliminate wrong options first — you\'ll often guess right.',
+    'The example problems in NCERT are model answers. They show you exactly how to write.',
+    'CBSE board setters use NCERT language. Know the textbook, know the exam.',
+    '5 questions a day = 1,825 questions a year. The entire syllabus, twice over.',
+    'Every correct answer now saves 30 minutes of panic before the board exam.',
+    'Writing the explanation in your own words is the fastest way to actually understand it.',
+  ];
+
+  let questions     = [];
+  let current       = 0;
+  let answers       = [];
+  let quizSessionId = null;
+  let subject       = null;
+  let isReviewer    = false;
+  let grade         = null;
+
+  // Reviewer picker state
+  let pickerGrade        = null;
+  let pickerSubject      = null;
+  let pickerCount        = 10;
+  let pickerChapter      = 'all';
+  let pickerDifficulty   = 'all';
+  let pickerType         = 'all';
+  let reviewerMeta       = null;  // { reviewerClasses, allSubjects, ownClass }
+  let reviewerChapters   = [];    // [{key, total, pictorial}] fetched per grade+subject
+  let chaptersLoading    = true;  // true while fetch in-flight
+
+  const R2_NCERT = 'https://pub-16b20cf36bbe496398d8324667b49018.r2.dev/ncert';
+  function ncertChapterUrl(gr, subjectKey, chapterKey) {
+    if (!chapterKey || !subjectKey) return null;
+    // chapterKey is like "ch6" (the value is the chapter; the book comes from subjectKey).
+    const chMatch = String(chapterKey).match(/(\d+)/);
+    if (!chMatch) return null;
+    const ch = String(parseInt(chMatch[1])).padStart(2, '0');
+    const map = {
+      '6:mathematics':              `Class_6/Maths/Ganita_Prakash_EN_ch${ch}.pdf`,
+      '6:science':                  `Class_6/Science/Curiosity_EN_ch${ch}.pdf`,
+      '6:english':                  `Class_6/English/Poorvi_ch${ch}.pdf`,
+      '6:hindi':                    `Class_6/Hindi/Malhar_ch${ch}.pdf`,
+      '6:social_science_part1':     `Class_6/Social_Science_English/Exploring_Society_EN_ch${ch}.pdf`,
+      '6:social_science_part1_hi':  `Class_6/Social_Science_Hindi/Samaj_ka_Aadhyan_HI_ch${ch}.pdf`,
+      '7:mathematics_part1':        `Class_7/Maths/Ganita_Prakash_Part1_EN_ch${ch}.pdf`,
+      '7:mathematics_part2':        `Class_7/Maths/Ganita_Prakash_Part2_EN_ch${ch}.pdf`,
+      '7:science':                  `Class_7/Science/Curiosity_EN_ch${ch}.pdf`,
+      '7:english':                  `Class_7/English/Poorvi_ch${ch}.pdf`,
+      '7:hindi':                    `Class_7/Hindi/Malhar_ch${ch}.pdf`,
+      '7:social_science_part1':     `Class_7/Social_Science_English/Exploring_Society_Part1_EN_ch${ch}.pdf`,
+      '7:social_science_part1_hi':  `Class_7/Social_Science_Hindi/Samaj_ka_Aadhyan_Part1_HI_ch${ch}.pdf`,
+      '7:social_science_part2':     `Class_7/Social_Science_English/Exploring_Society_Part2_EN_ch${ch}.pdf`,
+      '8:mathematics_part1':        `Class_8/Maths/Ganita_Prakash_Part1_EN_ch${ch}.pdf`,
+      '8:mathematics_part2':        `Class_8/Maths/Ganita_Prakash_Part2_EN_ch${ch}.pdf`,
+      '8:science':                  `Class_8/Science/Curiosity_EN_ch${ch}.pdf`,
+      '8:english':                  `Class_8/English/Poorvi_ch${ch}.pdf`,
+      '8:hindi':                    `Class_8/Hindi/Malhar_ch${ch}.pdf`,
+      '8:social_science_part1':     `Class_8/Social_Science_English/Exploring_Society_Part1_EN_ch${ch}.pdf`,
+      '8:social_science_part1_hi':  `Class_8/Social_Science_Hindi/Samaj_ka_Aadhyan_Part1_HI_ch${ch}.pdf`,
+      '9:mathematics':              `Class_9/Maths/Ganita_Manjari_EN_ch${ch}.pdf`,
+      '9:science':                  `Class_9/Science/Exploration_EN_ch${ch}.pdf`,
+      '9:english':                  `Class_9/English/Kaveri_ch${ch}.pdf`,
+      '9:hindi':                    `Class_9/Hindi/Ganga_ch${ch}.pdf`,
+      '10:mathematics':             `Class_10/Maths/Mathematics_EN_ch${ch}.pdf`,
+      '10:science':                 `Class_10/Science/Science_EN_ch${ch}.pdf`,
+      '10:english_first_flight':    `Class_10/English/First_Flight_ch${ch}.pdf`,
+      '10:english_footprints':      `Class_10/English/Footprints_Without_Feet_ch${ch}.pdf`,
+      '10:english_words_and_expr':  `Class_10/English/Words_and_Expressions_2_file${ch}.pdf`,
+      '10:hindi_kritika':           `Class_10/Hindi/Kritika_ch${ch}.pdf`,
+      '10:hindi_kshitij':           `Class_10/Hindi/Kshitij_2_ch${ch}.pdf`,
+      '10:hindi_sanchayan':         `Class_10/Hindi/Sanchayan_Bhag_2_ch${ch}.pdf`,
+      '10:hindi_sparsh':            `Class_10/Hindi/Sparsh_ch${ch}.pdf`,
+      '10:civics':                  `Class_10/Social_Science_English/Democratic_Politics_ch${ch}.pdf`,
+      '10:civics_hi':               `Class_10/Social_Science_Hindi/Loktantrik_Rajniti_ch${ch}.pdf`,
+      '10:economics':               `Class_10/Social_Science_English/Understanding_Economic_Development_ch${ch}.pdf`,
+      '10:economics_hi':            `Class_10/Social_Science_Hindi/Arthik_Vikas_ki_Samajh_ch${ch}.pdf`,
+      '10:geography':               `Class_10/Social_Science_English/Contemporary_India_ch${ch}.pdf`,
+      '10:geography_hi':            `Class_10/Social_Science_Hindi/Samkalin_Bharat_ch${ch}.pdf`,
+      '10:history':                 `Class_10/Social_Science_English/India_and_Contemporary_World_2_ch${ch}.pdf`,
+      '10:history_hi':              `Class_10/Social_Science_Hindi/Bharat_Aur_Samakalin_Vishav_2_ch${ch}.pdf`,
+    };
+    const path = map[`${gr}:${subjectKey}`];
+    return path ? `${R2_NCERT}/${path}` : null;
+  }
+
+  async function init() {
+    const session = localStorage.getItem('sp_session');
+    if (!session) { window.location.href = '/login'; return; }
+
+    // Check for URL params (used when reviewer re-starts a quiz from picker)
+    const p = new URLSearchParams(location.search);
+    const urlSubject = p.get('subject');
+    const urlGrade   = p.get('grade');
+    const urlCount   = p.get('count');
+
+    const qs = urlSubject
+      ? '?' + new URLSearchParams({ subject: urlSubject, ...(urlGrade && { grade: urlGrade }), ...(urlCount && { count: urlCount }) })
+      : '';
+
+    let data, res;
+    try {
+      res = await fetch('/api/quiz/start' + qs, {
+        headers: { 'Authorization': 'Bearer ' + session },
+      });
+    } catch {
+      showError('Couldn’t reach the server. Check your connection and try again.', 'Retry', '/quiz'); return;
+    }
+    if (res.status === 401) { localStorage.removeItem('sp_session'); window.location.href = '/login'; return; }
+    if (res.status === 403) { showError('Your subscription has ended.', 'Subscribe to continue', '/pay'); return; }
+    try { data = await res.json(); } catch { data = {}; }
+    if (!res.ok && data.error !== 'all_done') {
+      const msg = res.status >= 500
+        ? 'Something went wrong on our end. Please try again in a moment.'
+        : 'Could not load quiz. Please try again.';
+      showError(msg, 'Back to Dashboard', '/dashboard'); return;
+    }
+
+    isReviewer = data.isReviewer || false;
+
+    // Reviewer with no subject selected → show picker
+    if (isReviewer && data.needsPicker) {
+      reviewerMeta  = { reviewerClasses: data.reviewerClasses, allSubjects: data.allSubjects, ownClass: data.ownClass };
+      pickerGrade   = data.ownClass || (data.reviewerClasses && data.reviewerClasses[0]) || 6;
+      pickerSubject = data.allSubjects[0];
+      renderPicker();
+      fetchChapters();
+      return;
+    }
+
+    if (data.error === 'all_done') {
+      showError('🎉 All done for today!', 'Back to Dashboard', '/dashboard'); return;
+    }
+    if (data.error === 'already_completed') {
+      showError('Already done ' + (SUBJECT_LABELS[data.subject] || data.subject) + ' today!', 'Back to Dashboard', '/dashboard'); return;
+    }
+
+    questions     = data.questions;
+    quizSessionId = data.quizSessionId;
+    subject       = data.subject;
+    grade         = data.grade;
+
+    if (!questions.length) {
+      showError('No questions available right now. Try again later.', 'Back to Dashboard', '/dashboard');
+      return;
+    }
+
+    initSidebar(data);
+    renderQuestion();
+  }
+
+  function initSidebar(data) {
+    const subjLabel = SUBJECT_LABELS[data.subject] || data.subject || '';
+    document.getElementById('sb-name').textContent = data.studentName || '';
+    document.getElementById('sb-meta').textContent = `Class ${data.grade} · ${subjLabel}`;
+
+    const s = data.streak || 0;
+    document.getElementById('sb-streak').textContent = s > 0 ? `${s} day${s !== 1 ? 's' : ''}` : '0';
+    document.getElementById('sb-streak-sub').textContent = s > 0 ? 'Keep it going!' : 'Start today!';
+
+    const dotsEl = document.getElementById('sb-dots');
+    dotsEl.innerHTML = Array.from({ length: data.count || 5 }, (_, i) =>
+      `<div class="sb-dot pending" id="sdot-${i}">${i + 1}</div>`
+    ).join('');
+
+    document.getElementById('sb-tip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
+  }
+
+  function updateSidebarDot(index, correct) {
+    const dot = document.getElementById('sdot-' + index);
+    if (!dot) return;
+    dot.classList.remove('pending');
+    dot.classList.add(correct ? 'correct' : 'wrong');
+    dot.textContent = correct ? '✓' : '✗';
+  }
+
+  // ── Reviewer picker ──────────────────────────────────────────
+  function renderPicker() {
+    const page = document.getElementById('page');
+    const { reviewerClasses, allSubjects } = reviewerMeta;
+
+    let chapterChips;
+    if (chaptersLoading) {
+      chapterChips = `<span style="color:var(--muted);font-size:0.8rem;padding:6px 0">Loading chapters…</span>`;
+    } else if (reviewerChapters.length === 0) {
+      chapterChips = `<span style="color:var(--muted);font-size:0.8rem;padding:6px 0">No chapters found</span>`;
+    } else {
+      chapterChips = [
+        `<button class="chip ${pickerChapter==='all'?'active':''}" onclick="setPChapter('all')">All</button>`,
+        ...reviewerChapters.map(c => {
+          const key = c.chapter_key || c.key;
+          const n = parseInt(String(key).replace(/\D/g,''));
+          const pct = c.total > 0 ? Math.round(c.pictorial/c.total*100) : 0;
+          const badge = c.pictorial > 0 ? ` <span style="color:var(--green);font-size:0.65rem">${pct}% pic</span>` : '';
+          return `<button class="chip ${key===pickerChapter?'active':''}" onclick="setPChapter('${key}')">Ch ${n}${badge}</button>`;
+        }),
+      ].join('');
+    }
+
+    page.innerHTML = `
+      <div class="reviewer-badge">🔍 Reviewer Mode</div>
+      <div class="picker-card">
+        <div class="picker-title">Start a Review Session</div>
+        <div class="picker-sub">Filter by class, subject, chapter, difficulty, or question type.</div>
+
+        <label class="picker-label">Class</label>
+        <div class="chip-row">
+          ${reviewerClasses.map(g => `
+            <button class="chip ${g===pickerGrade?'active':''}" onclick="setPGrade(${g})">Class ${g}</button>
+          `).join('')}
+        </div>
+
+        <label class="picker-label">Subject</label>
+        <div class="chip-row">
+          ${allSubjects.map(s => `
+            <button class="chip ${s===pickerSubject?'active':''}" onclick="setPSubject('${s}')">
+              ${SUBJECT_LABELS[s]||s}
+            </button>
+          `).join('')}
+        </div>
+
+        <label class="picker-label">Chapter</label>
+        <div class="chip-row chip-row-scroll">${chapterChips}</div>
+
+        <label class="picker-label">Difficulty</label>
+        <div class="chip-row">
+          ${['all','easy','medium','hard'].map(d => `
+            <button class="chip ${d===pickerDifficulty?'active':''}" onclick="setPDifficulty('${d}')">
+              ${d==='all'?'All':d.charAt(0).toUpperCase()+d.slice(1)}
+            </button>
+          `).join('')}
+        </div>
+
+        <label class="picker-label">Question Type</label>
+        <div class="chip-row">
+          <button class="chip ${'all'===pickerType?'active':''}" onclick="setPType('all')">All</button>
+          <button class="chip ${'pictorial'===pickerType?'active':''}" onclick="setPType('pictorial')">📷 Pictorial</button>
+          <button class="chip ${'conceptual'===pickerType?'active':''}" onclick="setPType('conceptual')">📝 Conceptual</button>
+        </div>
+
+        <label class="picker-label">Questions per session</label>
+        <div class="chip-row">
+          ${[5,10,20,30].map(n => `
+            <button class="chip ${n===pickerCount?'active':''}" onclick="setPCount(${n})">${n} Q</button>
+          `).join('')}
+        </div>
+
+        <button class="next-btn show" style="margin-top:8px" onclick="startReviewerQuiz()">
+          Start Review →
+        </button>
+      </div>
+    `;
+  }
+
+  function setPGrade(g)   { pickerGrade=g; reviewerChapters=[]; chaptersLoading=true; pickerChapter='all'; renderPicker(); fetchChapters(); }
+  function setPSubject(s) { pickerSubject=s; reviewerChapters=[]; chaptersLoading=true; pickerChapter='all'; renderPicker(); fetchChapters(); }
+  function setPCount(n)      { pickerCount=n;      renderPicker(); }
+  function setPChapter(c)    { pickerChapter=c;    renderPicker(); }
+  function setPDifficulty(d) { pickerDifficulty=d; renderPicker(); }
+  function setPType(t)       { pickerType=t;       renderPicker(); }
+
+  async function fetchChapters() {
+    const session = localStorage.getItem('sp_session');
+    try {
+      const res = await fetch(`/api/reviewer/chapters?grade=${pickerGrade}&subject=${pickerSubject}`, {
+        headers: { 'Authorization': 'Bearer ' + session },
+      });
+      const data = await res.json();
+      reviewerChapters = (res.ok && data.chapters) ? data.chapters : [];
+    } catch { reviewerChapters = []; }
+    chaptersLoading = false;
+    renderPicker();
+  }
+
+  async function startReviewerQuiz() {
+    const session = localStorage.getItem('sp_session');
+    document.getElementById('page').innerHTML = '<div class="loading">Loading questions…</div>';
+
+    const params = new URLSearchParams({
+      subject: pickerSubject,
+      grade:   pickerGrade,
+      count:   pickerCount,
+      ...(pickerChapter    !== 'all'        && { chapter_key: pickerChapter }),
+      ...(pickerDifficulty !== 'all'        && { difficulty:  pickerDifficulty }),
+      ...(pickerType       !== 'all'        && { type:        pickerType }),
+    });
+    let data, res;
+    try {
+      res = await fetch('/api/quiz/start?' + params, {
+        headers: { 'Authorization': 'Bearer ' + session },
+      });
+    } catch {
+      // fetch itself failed → genuine connectivity problem
+      showError('Couldn’t reach the server. Check your connection and try again.', 'Try again', '/quiz'); return;
+    }
+    try { data = await res.json(); } catch { data = {}; }
+    if (!res.ok) {
+      const msg = res.status >= 500
+        ? 'Something went wrong on our end. Please try again in a moment.'
+        : (data.error === 'no_questions_available'
+            ? 'No questions available for this selection yet.'
+            : (data.error || 'Could not load questions.'));
+      showError(msg, 'Try again', '/quiz'); return;
+    }
+
+    questions     = data.questions;
+    quizSessionId = data.quizSessionId;
+    subject       = data.subject;
+    grade         = data.grade;
+    current       = 0;
+    answers       = [];
+    initSidebar(data);
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q    = questions[current];
+    const page = document.getElementById('page');
+    const pct  = Math.round((current / questions.length) * 100);
+    const subjLabel = SUBJECT_LABELS[subject] || subject;
+
+    // Reviewer gets extra metadata visible on the card
+    const typeClass = q.imagePath ? 'qtype-pictorial' : 'qtype-conceptual';
+    const typeLabel = q.imagePath ? '📷 Pictorial' : '📝 Conceptual';
+    const reviewerInfo = isReviewer && q.chapterKey ? `
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px;line-height:2;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        <span style="background:var(--card2);padding:2px 8px;border-radius:6px">${escHtml(q.chapterKey)}</span>
+        ${q.concept ? `<span style="background:var(--card2);padding:2px 8px;border-radius:6px">${escHtml(q.concept)}</span>` : ''}
+        <span style="background:var(--card2);padding:2px 8px;border-radius:6px">${q.difficulty||'medium'}</span>
+        <span class="qtype-badge ${typeClass}">${typeLabel}</span>
+        ${(() => { const u = ncertChapterUrl(grade, q.subjectKey || subject, q.chapterKey); return u ? `<a href="${u}" target="_blank" rel="noopener" class="ncert-link">📄 View chapter PDF →</a>` : ''; })()}
+      </div>` : '';
+
+    page.innerHTML = `
+      ${isReviewer ? `<button class="back-to-picker" onclick="renderPicker()">← Back to Filters</button>` : ''}
+      <div class="quiz-header">
+        <div class="quiz-meta">
+          <span class="quiz-subject">${subjLabel}${isReviewer ? ' · Reviewer' : ''}</span>
+          <span class="quiz-count">Q${current+1} of ${questions.length}</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        ${reviewerInfo}
+        ${q.imagePath ? `<div class="q-diagram"><img src="${q.imagePath}" alt="Diagram for question ${current+1}" loading="lazy" /></div>` : ''}
+        <div class="q-text">${current+1}. ${escHtml(q.text)}</div>
+        <div class="options" id="opts">
+          ${['A','B','C','D'].map(k => `
+            <button class="opt-btn" id="opt-${k}" onclick="choose('${k}')">
+              <span class="opt-key">${k}</span>
+              <span>${escHtml(q.options[k])}</span>
+            </button>
+          `).join('')}
+        </div>
+
+        <div class="explanation" id="expl"></div>
+        ${isReviewer ? `<button class="flag-btn" id="flag-btn" onclick="openFlagModal('${q.id}')">⚑ Flag this question</button>` : ''}
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">
+          ${current === questions.length - 1 ? 'Finish Quiz →' : 'Next Question →'}
+        </button>
+      </div>
+    `;
+  }
+
+  function choose(key) {
+    if (document.querySelector('.opt-btn.correct') || document.querySelector('.opt-btn.wrong')) return;
+
+    const q = questions[current];
+    answers.push({ questionId: q.id, chosen: key });
+
+    const opts = document.querySelectorAll('.opt-btn');
+    opts.forEach(btn => btn.disabled = true);
+
+    const isCorrect = key === q.correct;
+
+    // Highlight chosen option
+    document.getElementById('opt-' + key).classList.add(isCorrect ? 'correct' : 'wrong');
+    // If wrong, also highlight the correct one
+    if (!isCorrect) {
+      document.getElementById('opt-' + q.correct).classList.add('correct');
+    }
+
+    updateSidebarDot(current, isCorrect);
+
+    // Show explanation
+    const expl = document.getElementById('expl');
+    expl.innerHTML = `<strong>${isCorrect ? '✓ Correct!' : '✗ Incorrect.'}</strong> ${escHtml(q.explanation)}`;
+    expl.classList.add('show');
+
+    document.getElementById('next-btn').classList.add('show');
+  }
+
+  async function nextQuestion() {
+    current++;
+    if (current < questions.length) {
+      renderQuestion();
+    } else {
+      await submitQuiz();
+    }
+  }
+
+  const FLAG_REASONS = [
+    { key: 'wrong_answer',      label: 'Wrong answer marked as correct' },
+    { key: 'bad_explanation',   label: 'Explanation is incorrect or misleading' },
+    { key: 'factual_error',     label: 'Factual error in question or options' },
+    { key: 'unclear_question',  label: 'Question is ambiguous or unclear' },
+    { key: 'other',             label: 'Other issue' },
+  ];
+  const flaggedIds = new Set();
+
+  function openFlagModal(questionId) {
+    if (flaggedIds.has(questionId)) return;
+    let selectedReason = null;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'flag-overlay';
+    overlay.id = 'flag-overlay';
+    overlay.innerHTML = `
+      <div class="flag-card">
+        <div class="flag-title">⚑ Flag Question</div>
+        <div class="flag-sub">Select the issue with this question. Admin will review and deactivate if confirmed.</div>
+        <div class="flag-reasons">
+          ${FLAG_REASONS.map(r => `
+            <button class="flag-reason-btn" data-key="${r.key}" onclick="selectReason('${r.key}')">${r.label}</button>
+          `).join('')}
+        </div>
+        <textarea class="flag-note" id="flag-note" rows="2" placeholder="Optional: add a note (e.g. correct answer should be B)"></textarea>
+        <div class="flag-actions">
+          <button class="flag-cancel" onclick="closeFlagModal()">Cancel</button>
+          <button class="flag-submit" id="flag-submit" onclick="submitFlag('${questionId}')" disabled>Submit Flag</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeFlagModal(); });
+  }
+
+  function selectReason(key) {
+    document.querySelectorAll('.flag-reason-btn').forEach(b => b.classList.toggle('selected', b.dataset.key === key));
+    document.getElementById('flag-submit').disabled = false;
+  }
+
+  function closeFlagModal() { document.getElementById('flag-overlay')?.remove(); }
+
+  async function submitFlag(questionId) {
+    const reason = document.querySelector('.flag-reason-btn.selected')?.dataset.key;
+    if (!reason) return;
+    const note = document.getElementById('flag-note')?.value.trim() || null;
+    const btn  = document.getElementById('flag-submit');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+
+    try {
+      const session = localStorage.getItem('sp_session');
+      const res = await fetch('/api/quiz/flag', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + session, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId, reason, note }),
+      });
+      if (res.ok) {
+        flaggedIds.add(questionId);
+        closeFlagModal();
+        const fb = document.getElementById('flag-btn');
+        if (fb) { fb.textContent = '⚑ Flagged'; fb.classList.add('flagged'); fb.onclick = null; }
+        // Let the user move on from a flagged question even if they haven't answered it.
+        document.getElementById('next-btn')?.classList.add('show');
+      } else {
+        btn.disabled = false; btn.textContent = 'Submit Flag';
+      }
+    } catch {
+      btn.disabled = false; btn.textContent = 'Submit Flag';
+    }
+  }
+
+  async function submitQuiz() {
+    const page = document.getElementById('page');
+    page.innerHTML = '<div class="loading">Scoring your quiz…</div>';
+
+    const session = localStorage.getItem('sp_session');
+    let result;
+    try {
+      const res = await fetch('/api/quiz/complete', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + session, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizSessionId, answers }),
+      });
+      result = await res.json();
+    } catch {
+      page.innerHTML = '<div class="err-box"><h2>Submit failed</h2><p>Could not save your results. Please try again.</p><a href="/dashboard" class="btn-secondary" style="max-width:300px;margin:0 auto">Back to Dashboard</a></div>';
+      return;
+    }
+
+    showScore(result);
+  }
+
+  function showScore(result) {
+    const page    = document.getElementById('page');
+    const score   = result.score;
+    const total   = result.total || questions.length;
+    const pct     = Math.round((score / total) * 100);
+    const allDone = result.allDone;
+    const streak  = result.streak;
+    const subjLabel = SUBJECT_LABELS[subject] || subject;
+
+    const emoji = pct === 100 ? '🏆' : pct >= 80 ? '🌟' : pct >= 60 ? '👍' : pct >= 40 ? '📚' : '💪';
+    const msg   = pct === 100 ? 'Perfect score!'
+                : pct >= 80  ? 'Great work!'
+                : pct >= 60  ? 'Good effort!'
+                : pct >= 40  ? 'Keep practising!'
+                :               'Don\'t give up!';
+
+    const streakHtml = streak > 0 ? `<div class="score-streak">🔥 ${streak}-day streak!</div>` : '';
+
+    // Build correct/wrong summary
+    let reviewHtml = '<div style="margin-bottom:24px;display:flex;flex-direction:column;gap:8px;">';
+    for (let i = 0; i < questions.length; i++) {
+      const q      = questions[i];
+      // Match by questionId (answers is push-based; a skipped/flagged question would
+      // otherwise misalign answers[i] with questions[i]).
+      const ans    = answers.find(a => a.questionId === q.id);
+      const right  = ans?.chosen === q.correct;
+      const border = right ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+      const bg     = right ? 'rgba(34,197,94,0.05)' : 'rgba(239,68,68,0.05)';
+      const icon   = right ? '✓' : '✗';
+      const iconColor = right ? 'var(--green)' : 'var(--red)';
+      reviewHtml += `
+        <div style="background:${bg};border:1px solid ${border};border-radius:12px;padding:12px 14px;text-align:left;font-size:0.82rem;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="color:${iconColor};font-weight:800;">${icon}</span>
+            <span style="color:var(--muted);font-weight:600;">Q${i+1}</span>
+            <span style="color:var(--text);">You: <strong>${ans?.chosen || '—'}</strong>${!right ? ` · Correct: <strong style="color:var(--green)">${q.correct}</strong>` : ''}</span>
+          </div>
+        </div>`;
+    }
+    reviewHtml += '</div>';
+
+    const nextSubjectBtn = isReviewer
+      ? `<button class="btn-primary" onclick="renderPicker()">Review Another →</button>`
+      : (!allDone
+          ? `<button class="btn-primary" onclick="nextSubject()">Next Subject →</button>`
+          : `<a href="/dashboard" class="btn-primary">All Done for Today! 🎉</a>`);
+
+    page.innerHTML = `
+      <div class="score-screen">
+        <div class="score-emoji">${emoji}</div>
+        <div class="score-main">${score}/${total}</div>
+        <div class="score-sub">${msg} — ${subjLabel}</div>
+        ${streakHtml}
+        ${reviewHtml}
+        <div class="score-actions">
+          ${nextSubjectBtn}
+          <a href="/dashboard" class="btn-secondary">Back to Dashboard</a>
+        </div>
+      </div>
+    `;
+  }
+
+  function nextSubject() {
+    window.location.href = '/quiz';
+  }
+
+  function showError(title, btnLabel, btnHref) {
+    document.getElementById('page').innerHTML = `
+      <div class="err-box">
+        <h2>${title}</h2>
+        <a href="${btnHref}" class="btn-primary" style="max-width:280px;margin:0 auto">${btnLabel}</a>
+      </div>`;
+  }
+
+  function escHtml(s) {
+    return String(s || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  init();
+</script>
+</body>
+</html>

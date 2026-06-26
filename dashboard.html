@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — StreakPrep</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --dark:   #0B0F1A; --card: #111827; --card2: #162032;
+      --border: #1E2A3B; --text: #F0F4FF; --muted: #6B7FA3;
+      --orange: #FF6B35; --orange-glow: rgba(255,107,53,0.3);
+      --green:  #22C55E; --green-dim: rgba(34,197,94,0.12);
+      --red:    #EF4444; --yellow: #F59E0B;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100vh; background: var(--dark); color: var(--text); font-family: 'Inter', sans-serif; }
+
+    /* ── Nav ── */
+    nav { padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .logo { font-size: 1.1rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .logo span { color: var(--orange); }
+    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .nav-link { font-size: 0.82rem; color: var(--muted); text-decoration: none; font-weight: 500; transition: color 0.15s; }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.danger:hover { color: var(--red); }
+
+    /* ── Layout ── */
+    .page { max-width: 680px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    /* ── Profile switcher ── */
+    .profiles { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .profile-chip {
+      padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+      border: 1.5px solid var(--border); color: var(--muted); cursor: pointer;
+      background: transparent; font-family: inherit; transition: all 0.15s;
+    }
+    .profile-chip:hover { border-color: rgba(255,107,53,0.4); color: var(--text); }
+    .profile-chip.active { border-color: var(--orange); color: var(--orange); background: rgba(255,107,53,0.08); }
+
+    /* ── Greeting ── */
+    .greeting { margin-bottom: 6px; }
+    .greeting-name { font-size: 1.6rem; font-weight: 900; }
+    .greeting-sub  { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Streak banner ── */
+    .streak-bar {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px 20px; margin: 20px 0;
+    }
+    .streak-num { font-size: 2.2rem; font-weight: 900; color: var(--orange); line-height: 1; }
+    .streak-label { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .streak-best { margin-left: auto; text-align: right; }
+    .streak-best-num { font-size: 1.1rem; font-weight: 800; color: var(--muted); }
+    .streak-best-label { font-size: 0.7rem; color: #3D5070; }
+
+    /* ── Subscription status ── */
+    .sub-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-radius: 12px; margin-bottom: 20px;
+      font-size: 0.82rem; font-weight: 600;
+    }
+    .sub-banner.trial   { background: rgba(245,158,11,0.1);  border: 1px solid rgba(245,158,11,0.25); color: var(--yellow); }
+    .sub-banner.active  { background: var(--green-dim);       border: 1px solid rgba(34,197,94,0.25);  color: var(--green); }
+    .sub-banner.grace,
+    .sub-banner.expired { background: rgba(239,68,68,0.1);   border: 1px solid rgba(239,68,68,0.25);  color: var(--red); }
+    .sub-banner.none    { background: rgba(107,127,163,0.08); border: 1px solid var(--border);         color: var(--muted); }
+    .sub-upgrade { font-size: 0.75rem; font-weight: 700; color: var(--orange); text-decoration: none; white-space: nowrap; margin-left: 12px; }
+
+    /* ── Today's quiz section ── */
+    .section-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+    .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--orange); border-radius: 3px; transition: width 0.4s ease; }
+    .progress-label { font-size: 0.8rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+
+    .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .subj-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .subj-card.done   { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.05); }
+    .subj-card.locked { opacity: 0.5; }
+    .subj-name { font-size: 0.85rem; font-weight: 600; }
+    .subj-status { font-size: 0.75rem; font-weight: 700; }
+    .subj-status.done  { color: var(--green); }
+    .subj-status.open  { color: var(--orange); }
+    .subj-status.lock  { color: var(--muted); }
+
+    /* ── CTA ── */
+    .quiz-cta {
+      width: 100%; padding: 16px; background: var(--orange); color: white;
+      border: none; border-radius: 14px; font-size: 1rem; font-weight: 800;
+      cursor: pointer; font-family: inherit; text-decoration: none; display: block; text-align: center;
+      box-shadow: 0 8px 30px var(--orange-glow); transition: transform 0.15s, box-shadow 0.15s;
+      margin-bottom: 10px;
+    }
+    .quiz-cta:hover { transform: translateY(-1px); box-shadow: 0 12px 40px var(--orange-glow); }
+    .quiz-cta:disabled, .quiz-cta.all-done { background: var(--card2); color: var(--muted); box-shadow: none; cursor: default; border: 1px solid var(--border); transform: none; }
+
+    .all-done-msg { text-align: center; font-size: 0.82rem; color: var(--muted); margin-top: 6px; }
+
+    /* ── Loading / error ── */
+    .loading { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 0.9rem; }
+    .err-page { text-align: center; padding: 80px 20px; }
+    .err-page h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; }
+    .err-page p { color: var(--muted); font-size: 0.85rem; }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    @media (max-width: 480px) {
+      .subject-grid { grid-template-columns: 1fr; }
+      .greeting-name { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Streak<span>Prep</span></a>
+  <div class="nav-actions">
+    <a href="/account" class="nav-link">Account</a>
+    <a href="#" class="nav-link danger" onclick="logout(event)">Logout</a>
+  </div>
+</nav>
+
+<div class="page" id="page">
+  <div class="loading" id="loading">Loading your dashboard…</div>
+</div>
+
+<script>
+  const SUBJECT_LABELS = {
+    mathematics:   'Mathematics',
+    science:       'Science',
+    english:       'English',
+    hindi:         'Hindi',
+    social_science:'Social Science',
+  };
+
+  async function init() {
+    const session = localStorage.getItem('sp_session');
+    if (!session) { window.location.href = '/login'; return; }
+
+    let data;
+    try {
+      const res = await fetch('/api/dashboard', {
+        headers: { 'Authorization': 'Bearer ' + session },
+      });
+      if (res.status === 401) { clearAndRedirect(); return; }
+      if (!res.ok) { showError('Could not load dashboard. Please try again.'); return; }
+      data = await res.json();
+    } catch {
+      showError('Network error. Please check your connection.');
+      return;
+    }
+
+    renderDashboard(data);
+  }
+
+  function renderDashboard(d) {
+    const page = document.getElementById('page');
+    const canQuiz = d.subscription.type === 'trial' || d.subscription.type === 'active';
+    const allDone = d.pendingSubjects.length === 0;
+    const doneCount = d.doneSubjects.length;
+    const totalSubj = d.student.subjects.length;
+    const pct = totalSubj > 0 ? Math.round((doneCount / totalSubj) * 100) : 0;
+
+    // Profile switcher (only if siblings > 1)
+    const profilesHtml = d.siblings.length > 1 ? `
+      <div class="profiles" id="profiles">
+        ${d.siblings.map(s => `
+          <button class="profile-chip ${s.id === d.activeStudentId ? 'active' : ''}"
+            onclick="switchProfile(${s.id})">
+            ${s.name} · Cl.${s.class}
+          </button>
+        `).join('')}
+      </div>` : '';
+
+    // Subject cards
+    const subjectCards = d.student.subjects.map(subj => {
+      const quiz     = d.todayQuizzes.find(q => q.subject === subj);
+      const isDone   = quiz && quiz.status === 'completed';
+      const isLocked = !canQuiz;
+      const label    = SUBJECT_LABELS[subj] || subj;
+      const scoreStr = isDone ? `${quiz.score}/5 ✓` : isLocked ? '🔒' : 'Pending';
+      const cls      = isDone ? 'done' : isLocked ? 'locked' : '';
+      const statusCls= isDone ? 'done' : isLocked ? 'lock' : 'open';
+      return `
+        <div class="subj-card ${cls}">
+          <span class="subj-name">${label}</span>
+          <span class="subj-status ${statusCls}">${scoreStr}</span>
+        </div>`;
+    }).join('');
+
+    // Subscription banner
+    const subType = d.subscription.type;
+    const upgradeLink = (subType === 'trial' || subType === 'grace' || subType === 'expired')
+      ? `<a href="/pay" class="sub-upgrade">Upgrade →</a>` : '';
+
+    // CTA button
+    const ctaLabel = allDone
+      ? '🎉 All done for today!'
+      : canQuiz ? 'Start Today\'s Quiz →' : 'Subscribe to Start Quiz →';
+    const ctaHref  = !allDone && canQuiz ? '/quiz' : !canQuiz ? '/pay' : '#';
+    const ctaCls   = allDone ? 'quiz-cta all-done' : 'quiz-cta';
+
+    page.innerHTML = `
+      ${profilesHtml}
+
+      <div class="greeting">
+        <div class="greeting-name">Hi, ${d.student.name} 👋</div>
+        <div class="greeting-sub">Class ${d.student.class} · ${d.student.subjects.length} subject${d.student.subjects.length > 1 ? 's' : ''}</div>
+      </div>
+
+      <div class="streak-bar">
+        <div>
+          <div class="streak-num">🔥 ${d.streak.current_streak}</div>
+          <div class="streak-label">day streak</div>
+        </div>
+        <div class="streak-best">
+          <div class="streak-best-num">${d.streak.longest_streak}</div>
+          <div class="streak-best-label">Best ever</div>
+        </div>
+      </div>
+
+      <div class="sub-banner ${subType}">
+        <span>${d.subscription.label}</span>
+        ${upgradeLink}
+      </div>
+
+      <div class="section-title">Today's Quiz</div>
+
+      <div class="progress-row">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+        <span class="progress-label">${doneCount}/${totalSubj} done</span>
+      </div>
+
+      <div class="subject-grid">${subjectCards}</div>
+
+      <a href="${ctaHref}" class="${ctaCls}">${ctaLabel}</a>
+      ${allDone ? '<p class="all-done-msg">Come back tomorrow to keep your streak alive!</p>' : ''}
+    `;
+  }
+
+  async function switchProfile(studentId) {
+    const session = localStorage.getItem('sp_session');
+    await fetch('/api/session/switch', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + session, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentId }),
+    });
+    init(); // reload dashboard with new active student
+  }
+
+  function logout(e) {
+    e.preventDefault();
+    localStorage.removeItem('sp_session');
+    localStorage.removeItem('sp_device');
+    window.location.href = '/login';
+  }
+
+  function clearAndRedirect() {
+    localStorage.removeItem('sp_session');
+    window.location.href = '/login';
+  }
+
+  function showError(msg) {
+    document.getElementById('page').innerHTML = `
+      <div class="err-page">
+        <h2>Something went wrong</h2>
+        <p>${msg}</p>
+        <br/>
+        <a href="/login" style="color:var(--orange);font-size:0.85rem;">Back to login →</a>
+      </div>`;
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+name = "streakprep"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "."
+
+[vars]
+# Update this to the Cloudflare R2 public URL once images are uploaded there.
+# For local dev (ngrok), set PUBLIC_BASE_URL in the Cloudflare Pages dashboard.
+PUBLIC_BASE_URL = "https://pub-16b20cf36bbe496398d8324667b49018.r2.dev/media"
+
+[[d1_databases]]
+binding = "streakprep_db"
+database_name = "streakprep-db"
+database_id = "babcd88c-0e5e-4ddd-b791-855d69c5fa4c"

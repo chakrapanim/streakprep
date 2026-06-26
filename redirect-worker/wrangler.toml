@@ -1,0 +1,7 @@
+name = "streakprepindia-redirect"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# After deploy, attach routes in Cloudflare dashboard:
+#   streakprepindia.com/*
+#   www.streakprepindia.com/*

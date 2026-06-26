@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>StreakPrep — Small Streaks. Big Leaps.</title>
+  <meta name="description" content="Small Streaks. Big Leaps. 5 NCERT questions a day for CBSE students. Classes 6–10. First week free." />
+  <meta name="theme-color" content="#FF6B35" />
+  <link rel="canonical" href="https://streakprep.ai/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://streakprep.ai/" />
+  <meta property="og:title" content="StreakPrep — Small Streaks. Big Leaps." />
+  <meta property="og:description" content="Small Streaks. Big Leaps. 5 NCERT questions a day for CBSE students. Classes 6–10. First week free." />
+  <meta property="og:site_name" content="StreakPrep" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="StreakPrep — Small Streaks. Big Leaps." />
+  <meta name="twitter:description" content="Small Streaks. Big Leaps. 5 NCERT questions a day for CBSE students. Classes 6–10. First week free." />
+  <!-- Replace content with token from Google Search Console → HTML tag method -->
+  <meta name="google-site-verification" content="REPLACE_WITH_GSC_TOKEN" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #FF6B35;
+      --orange-glow: rgba(255,107,53,0.18);
+      --orange-dark: #E55A26;
+      --green: #22C55E;
+      --green-bg: #DCFCE7;
+      --dark: #0B0F1A;
+      --card: #131929;
+      --border: rgba(255,255,255,0.08);
+      --text: #E8EDF5;
+      --muted: #7A8BA8;
+      --white: #fff;
+      --radius: 20px;
+    }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── ANIMATED BACKGROUND ── */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,107,53,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,107,53,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 30%, transparent 100%);
+    }
+    .bg-orb {
+      position: fixed; border-radius: 50%; filter: blur(80px);
+      pointer-events: none; z-index: 0;
+    }
+    .bg-orb-1 {
+      width: 500px; height: 500px;
+      background: rgba(255,107,53,0.12);
+      top: -100px; left: -100px;
+      animation: orbFloat 12s ease-in-out infinite alternate;
+    }
+    .bg-orb-2 {
+      width: 400px; height: 400px;
+      background: rgba(34,197,94,0.07);
+      bottom: 20%; right: -100px;
+      animation: orbFloat 16s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes orbFloat {
+      from { transform: translate(0,0) scale(1); }
+      to { transform: translate(30px, 40px) scale(1.1); }
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 0 20px;
+      background: rgba(11,15,26,0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .logo {
+      font-size: 1.35rem; font-weight: 900;
+      color: var(--white); text-decoration: none; letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--orange); }
+    .logo-tagline {
+      font-size: 0.62rem; font-weight: 600; letter-spacing: 0.06em;
+      color: var(--muted); text-transform: uppercase;
+      display: block; margin-top: -2px;
+    }
+    .nav-right {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .nav-login {
+      background: transparent; color: var(--text);
+      padding: 9px 18px; border-radius: 10px;
+      font-weight: 600; font-size: 0.875rem;
+      text-decoration: none;
+      border: 1.5px solid var(--border);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .nav-login:hover { border-color: var(--orange); color: var(--orange); }
+    .nav-cta {
+      background: var(--orange); color: white;
+      padding: 9px 20px; border-radius: 10px;
+      font-weight: 700; font-size: 0.875rem;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 0 0 0 var(--orange-glow);
+    }
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px var(--orange-glow);
+    }
+
+    /* ── SHARED SECTION STYLES ── */
+    .section { position: relative; z-index: 1; padding: 80px 20px; }
+    .inner { max-width: 1100px; margin: 0 auto; }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 12px;
+    }
+    .tag::before {
+      content: ''; display: block;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--orange);
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900; letter-spacing: -0.03em;
+      line-height: 1.15; margin-bottom: 14px;
+    }
+    .section-sub {
+      color: var(--muted); font-size: 1rem;
+      max-width: 480px; line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; z-index: 1;
+      min-height: 100svh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 100px 20px 60px;
+    }
+    .free-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #4ADE80; border-radius: 999px;
+      padding: 8px 18px; font-size: 0.82rem; font-weight: 600;
+      margin-bottom: 28px;
+      animation: fadeSlideDown 0.6s ease both;
+    }
+    .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.6; }
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 7vw, 4.2rem);
+      font-weight: 900; letter-spacing: -0.04em;
+      line-height: 1.08;
+      max-width: 820px; margin: 0 auto 20px;
+      animation: fadeSlideDown 0.6s 0.1s ease both;
+    }
+    .hero h1 .accent { color: var(--orange); position: relative; }
+    .hero h1 .accent::after {
+      content: '';
+      position: absolute; left: 0; right: 0; bottom: -4px;
+      height: 3px; border-radius: 2px;
+      background: var(--orange); opacity: 0.4;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2.5vw, 1.15rem);
+      color: var(--muted); max-width: 520px;
+      margin: 0 auto 36px;
+      animation: fadeSlideDown 0.6s 0.2s ease both;
+    }
+    .hero-actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      animation: fadeSlideDown 0.6s 0.3s ease both;
+    }
+    .btn-primary {
+      background: var(--orange); color: white;
+      padding: 16px 32px; border-radius: 12px;
+      font-size: 1rem; font-weight: 700;
+      text-decoration: none; border: none; cursor: pointer;
+      box-shadow: 0 0 30px rgba(255,107,53,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,107,53,0.4); }
+    .btn-ghost {
+      background: transparent; color: var(--text);
+      padding: 16px 28px; border-radius: 12px;
+      font-size: 1rem; font-weight: 600;
+      text-decoration: none; border: 1.5px solid var(--border);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
+    .hero-trust {
+      margin-top: 16px; font-size: 0.82rem; color: var(--muted);
+      animation: fadeSlideDown 0.6s 0.4s ease both;
+    }
+
+    /* HERO FLOATING CARDS */
+    .hero-visual {
+      position: relative; margin-top: 56px; width: 100%; max-width: 700px;
+      animation: fadeSlideDown 0.8s 0.35s ease both;
+    }
+    .streak-card-row {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .mini-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 12px;
+      min-width: 160px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .mini-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .mini-icon.orange { background: rgba(255,107,53,0.15); }
+    .mini-icon.green  { background: rgba(34,197,94,0.15); }
+    .mini-icon.blue   { background: rgba(99,179,237,0.15); }
+    .mini-card-label { font-size: 0.7rem; color: var(--muted); font-weight: 500; }
+    .mini-card-val   { font-size: 1rem; font-weight: 800; color: var(--white); }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      position: relative; z-index: 1;
+      background: rgba(255,107,53,0.06);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 20px;
+    }
+    .stats-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center; padding: 8px 32px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-num { font-size: 1.5rem; font-weight: 900; color: var(--orange); }
+    .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── HOW IT WORKS ── */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+    }
+    .step-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .step-card::before {
+      content: ''; position: absolute;
+      inset: 0; border-radius: var(--radius);
+      background: radial-gradient(ellipse at 0% 0%, var(--orange-glow) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .step-card:hover { transform: translateY(-4px); border-color: rgba(255,107,53,0.3); }
+    .step-card:hover::before { opacity: 1; }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--orange-glow); color: var(--orange);
+      font-weight: 900; font-size: 0.95rem;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .step-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--white); }
+    .step-card p  { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── QUIZ DEMO ── */
+    .quiz-demo-section { padding: 80px 20px; position: relative; z-index: 1; }
+    .quiz-demo-wrap {
+      display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap;
+    }
+    .quiz-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 24px; padding: 28px;
+      flex: 1; min-width: 300px; max-width: 520px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    }
+    .quiz-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .quiz-chip {
+      padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+      background: rgba(255,255,255,0.06); color: var(--muted);
+    }
+    .quiz-chip.active { background: rgba(255,107,53,0.15); color: var(--orange); }
+    .quiz-q {
+      font-size: 1rem; font-weight: 700; color: var(--white);
+      line-height: 1.55; margin-bottom: 18px;
+    }
+    .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+    .qopt {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1.5px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 12px 14px;
+      cursor: pointer; font-size: 0.9rem; color: #94A3B8;
+      transition: all 0.15s; user-select: none;
+    }
+    .qopt:hover { border-color: rgba(255,107,53,0.4); color: var(--white); }
+    .qopt.correct { background: rgba(34,197,94,0.08); border-color: var(--green); color: #86EFAC; }
+    .qopt.wrong   { background: rgba(239,68,68,0.08); border-color: #EF4444; color: #FCA5A5; }
+    .qopt-key {
+      width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+      background: rgba(255,255,255,0.06); color: var(--muted);
+      font-size: 0.72rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .qopt.correct .qopt-key { background: var(--green); color: white; }
+    .qopt.wrong   .qopt-key { background: #EF4444; color: white; }
+    .quiz-footer {
+      margin-top: 20px; display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    .streak-dots { display: flex; gap: 5px; align-items: center; }
+    .sdot {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+    }
+    .sdot.done { background: var(--orange); color: white; }
+    .sdot.today { background: rgba(255,107,53,0.2); border: 2px dashed var(--orange); color: var(--orange); }
+    .sdot.future { background: rgba(255,255,255,0.04); border: 1.5px dashed rgba(255,255,255,0.1); color: var(--muted); }
+    .streak-label { font-size: 0.8rem; color: var(--muted); }
+
+    /* Quiz side cards */
+    .quiz-side { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+    .side-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px;
+      transition: border-color 0.2s;
+    }
+    .side-card:hover { border-color: rgba(255,107,53,0.25); }
+    .side-icon { font-size: 1.4rem; margin-bottom: 10px; }
+    .side-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+    .side-card p  { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+    /* Demo type tabs */
+    .demo-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .demo-tab {
+      padding: 7px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 700;
+      cursor: pointer; border: 1.5px solid var(--border); background: transparent;
+      color: var(--muted); font-family: inherit; transition: all 0.15s;
+    }
+    .demo-tab.active { border-color: var(--orange); color: var(--orange); background: rgba(255,107,53,0.08); }
+    .demo-pane { display: none; }
+    .demo-pane.active { display: block; }
+    .quiz-img-demo {
+      width: 100%; border-radius: 12px; overflow: hidden;
+      background: #fff; margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .quiz-img-demo img { width: 100%; height: auto; display: block; max-height: 220px; object-fit: contain; }
+
+    /* ── PRICING ── */
+    .pricing-section { position: relative; z-index: 1; padding: 80px 20px; }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px; max-width: 900px;
+    }
+    .price-card {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 24px; padding: 32px 28px;
+      position: relative; transition: transform 0.2s, border-color 0.2s;
+    }
+    .price-card:hover { transform: translateY(-4px); }
+    .price-card.featured {
+      border-color: var(--orange);
+      background: linear-gradient(160deg, rgba(255,107,53,0.08) 0%, var(--card) 60%);
+      box-shadow: 0 0 0 1px var(--orange), 0 30px 80px rgba(255,107,53,0.15);
+    }
+    .price-card.featured:hover { transform: translateY(-6px); }
+    .popular-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--orange); color: white;
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em;
+      padding: 5px 18px; border-radius: 999px; white-space: nowrap;
+    }
+    .plan-name { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .plan-subjects { font-size: 1.3rem; font-weight: 900; color: var(--white); margin-bottom: 16px; }
+    .plan-original { font-size: 0.88rem; color: var(--muted); text-decoration: line-through; margin-bottom: 2px; }
+    .plan-price { font-size: 2.4rem; font-weight: 900; color: var(--white); letter-spacing: -0.03em; }
+    .plan-price sup { font-size: 1.1rem; font-weight: 600; vertical-align: super; }
+    .plan-price sub { font-size: 0.9rem; font-weight: 500; color: var(--muted); }
+    .plan-saving { font-size: 0.8rem; font-weight: 700; color: var(--green); margin: 8px 0 24px; }
+    .plan-divider { height: 1px; background: var(--border); margin-bottom: 20px; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .plan-features li { font-size: 0.875rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .plan-features li .check { color: var(--green); font-size: 0.8rem; }
+    .plan-btn {
+      width: 100%; padding: 14px; border-radius: 12px;
+      font-weight: 700; font-size: 0.95rem; cursor: pointer;
+      border: 1.5px solid var(--orange); color: var(--orange);
+      background: transparent; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .plan-btn:hover, .price-card.featured .plan-btn {
+      background: var(--orange); color: white;
+      box-shadow: 0 8px 30px rgba(255,107,53,0.3);
+    }
+
+    /* ── FREE WEEK BANNER ── */
+    .free-banner {
+      position: relative; z-index: 1;
+      background: linear-gradient(135deg, #166534 0%, #14532D 100%);
+      padding: 20px 24px; text-align: center;
+      border-top: 1px solid rgba(74,222,128,0.2);
+      border-bottom: 1px solid rgba(74,222,128,0.2);
+    }
+    .free-banner p { font-size: 0.95rem; font-weight: 600; color: #BBF7D0; }
+    .free-banner strong { color: white; }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-section { position: relative; z-index: 1; padding: 80px 20px; overflow: hidden; }
+    .testimonials-scroll {
+      display: flex; gap: 16px; overflow-x: auto;
+      scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+      padding-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .testimonials-scroll::-webkit-scrollbar { display: none; }
+    .tcard {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 28px;
+      min-width: 290px; flex-shrink: 0;
+      scroll-snap-align: start;
+    }
+    .stars { color: #F59E0B; font-size: 0.95rem; margin-bottom: 12px; letter-spacing: 2px; }
+    .tcard p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; margin-bottom: 18px; }
+    .tauthor { display: flex; align-items: center; gap: 12px; }
+    .tavatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(255,107,53,0.15); color: var(--orange);
+      font-weight: 900; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .tauthor-name { font-size: 0.875rem; font-weight: 700; color: var(--white); }
+    .tauthor-sub  { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── FAQ ── */
+    .faq-section { position: relative; z-index: 1; padding: 80px 20px; }
+    .faq-wrap { max-width: 700px; display: flex; flex-direction: column; gap: 10px; }
+    .faq-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden; transition: border-color 0.2s;
+    }
+    .faq-item.open { border-color: rgba(255,107,53,0.3); }
+    .faq-q {
+      width: 100%; background: none; border: none;
+      text-align: left; padding: 18px 20px;
+      font-size: 0.9rem; font-weight: 600; color: var(--white);
+      cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      font-family: inherit;
+    }
+    .faq-chevron { color: var(--orange); transition: transform 0.25s; flex-shrink: 0; font-style: normal; }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-a {
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease;
+      font-size: 0.875rem; color: var(--muted); line-height: 1.75;
+      padding: 0 20px;
+    }
+    .faq-a.open { max-height: 200px; padding: 0 20px 18px; }
+
+    /* ── REGISTER SECTION ── */
+    .register-section {
+      position: relative; z-index: 1;
+      padding: 80px 20px; text-align: center;
+    }
+    .register-form {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 28px; padding: 36px 32px;
+      max-width: 500px; margin: 0 auto; text-align: left;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block; font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 7px;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 12px 14px;
+      color: var(--white); font-size: 0.9rem; font-family: inherit;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+    .form-input::placeholder { color: #3D5070; }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: var(--orange);
+      background: rgba(255,107,53,0.04);
+    }
+    .form-select option { background: #1E293B; }
+    .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .subj-label {
+      display: flex; align-items: center; gap: 9px;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 11px 14px;
+      cursor: pointer; font-size: 0.85rem; color: var(--muted);
+      transition: all 0.15s; user-select: none;
+    }
+    .subj-label:hover { border-color: rgba(255,107,53,0.4); color: var(--text); }
+    .subj-label.active { border-color: var(--orange); background: rgba(255,107,53,0.08); color: var(--orange); }
+    .subj-label input { display: none; }
+    .subj-check {
+      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+      border: 1.5px solid currentColor;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; transition: all 0.15s;
+    }
+    .subj-check::after { content: ''; }
+    .subj-label.active .subj-check::after { content: '✓'; }
+    .parent-section-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+    }
+    .children-divider {
+      border: none; border-top: 1px solid var(--border); margin: 20px 0 18px;
+    }
+    .child-block + .child-block {
+      border-top: 1px solid var(--border); margin-top: 8px; padding-top: 20px;
+    }
+    .child-block-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+    }
+    .child-block-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--orange);
+    }
+    .remove-child-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 0.78rem; padding: 3px 8px; border-radius: 6px; font-family: inherit;
+      transition: color 0.15s, background 0.15s;
+    }
+    .remove-child-btn:hover { color: #EF4444; background: rgba(239,68,68,0.1); }
+    .child-plan-note {
+      font-size: 0.78rem; color: var(--muted); margin-top: 10px;
+      padding: 9px 13px; background: rgba(255,255,255,0.03);
+      border-radius: 8px; border: 1px solid var(--border);
+    }
+    .add-child-btn {
+      width: 100%; padding: 11px; background: transparent;
+      border: 1.5px dashed var(--border); border-radius: 12px;
+      color: var(--muted); font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; margin-top: 16px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .add-child-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .plan-summary {
+      background: rgba(255,107,53,0.06);
+      border: 1px solid rgba(255,107,53,0.2);
+      border-radius: 12px; padding: 14px 16px;
+      margin: 20px 0; display: flex; justify-content: space-between; align-items: center;
+    }
+    .plan-summary-label { font-size: 0.82rem; color: var(--muted); }
+    .plan-summary-price { font-size: 1.1rem; font-weight: 800; color: var(--orange); }
+    .submit-btn {
+      width: 100%; padding: 15px; background: var(--orange); color: white;
+      border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 8px 30px rgba(255,107,53,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(255,107,53,0.4); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+    .pin-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 6px; }
+    .pin-box {
+      width: 44px; height: 54px; text-align: center; font-size: 1.3rem; font-weight: 700;
+      background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
+      border-radius: 10px; color: var(--text); font-family: inherit;
+      caret-color: var(--orange); transition: border-color 0.15s; -webkit-appearance: none;
+    }
+    .pin-box:focus { outline: none; border-color: var(--orange); }
+    .pin-box.filled { border-color: rgba(255,107,53,0.5); }
+    .step-icon  { font-size: 2.2rem; text-align: center; margin-bottom: 10px; }
+    .step-title { font-size: 1.15rem; font-weight: 800; text-align: center; margin-bottom: 6px; }
+    .step-sub   { font-size: 0.82rem; color: var(--muted); text-align: center; margin-bottom: 22px; line-height: 1.5; }
+    .step-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
+    .form-note { font-size: 0.77rem; color: #3D5070; text-align: center; margin-top: 12px; }
+    .success-msg { display: none; text-align: center; padding: 40px 10px; }
+    .success-emoji { font-size: 3.5rem; margin-bottom: 16px; }
+    .success-msg h3 { font-size: 1.4rem; font-weight: 900; color: var(--green); margin-bottom: 10px; }
+    .success-msg p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid var(--border);
+      padding: 36px 20px; text-align: center;
+      font-size: 0.82rem; color: var(--muted);
+    }
+    footer .footer-logo { font-size: 1.1rem; font-weight: 900; color: var(--white); margin-bottom: 10px; }
+    footer .footer-logo span { color: var(--orange); }
+    footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--orange); }
+    footer .links { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
+
+    /* ── SCROLL ANIMATIONS ── */
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .form-row       { grid-template-columns: 1fr; }
+      .subject-grid   { grid-template-columns: 1fr; }
+      .register-form  { padding: 24px 18px; }
+      .stats-inner    { gap: 0; display: grid; grid-template-columns: 1fr 1fr; }
+      .stat           { padding: 14px 10px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+      .stat:nth-child(2n) { border-right: none; }
+      .stat:nth-child(n+3) { border-bottom: none; }
+      .stat-num       { font-size: 1.25rem; }
+      .stat-label     { font-size: 0.7rem; }
+      .hero           { padding: 80px 20px 40px; min-height: auto; }
+      .hero h1        { font-size: 2.2rem; }
+      .hero-trust     { font-size: 0.78rem; }
+      .pricing-grid   { grid-template-columns: 1fr; max-width: 360px; }
+      .price-card.featured { transform: none; }
+      .hero-visual    { display: none; }
+      .quiz-demo-wrap { flex-direction: column; }
+      .quiz-card      { max-width: 100%; }
+      .bg-orb-1, .bg-orb-2 { display: none; }
+      .section        { padding: 56px 20px; }
+      .steps-grid     { grid-template-columns: 1fr; }
+      .testimonials-scroll { padding-bottom: 16px; }
+      .tcard          { min-width: 260px; }
+    }
+    @media (max-width: 400px) {
+      .hero-actions   { flex-direction: column; }
+      .btn-primary, .btn-ghost { width: 100%; text-align: center; }
+      .hero h1        { font-size: 1.9rem; }
+      .nav-login      { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">Streak<span>Prep</span><em class="logo-tagline">Small Streaks. Big Leaps.</em></a>
+    <div class="nav-right">
+      <a href="/login" class="nav-login">Login</a>
+      <a href="#register" class="nav-cta">Start Free Trial</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="free-pill">
+    <div class="pulse-dot"></div>
+    7 days free — from the day you register
+  </div>
+  <h1>5 questions a day.<br/>A <span class="accent">study streak</span> that sticks.</h1>
+  <p class="hero-sub">Daily NCERT MCQs for CBSE students. Classes 6–10. Takes 5 minutes. Works on any device.</p>
+  <div class="hero-actions">
+    <a href="#register" class="btn-primary">Start Free — No Card Needed</a>
+    <a href="#how-it-works" class="btn-ghost">See How It Works</a>
+  </div>
+  <p class="hero-trust">47,000+ questions · Class 6–10 · All NCERT subjects</p>
+  <p class="hero-trust" style="margin-top:6px;color:var(--muted);">Built by an IIT Bombay engineer who lived this habit.</p>
+
+  <div class="hero-visual">
+    <div class="streak-card-row">
+      <div class="mini-card">
+        <div class="mini-icon orange">🔥</div>
+        <div>
+          <div class="mini-card-label">Current Streak</div>
+          <div class="mini-card-val">14 Days</div>
+        </div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-icon green">✓</div>
+        <div>
+          <div class="mini-card-label">Today's Quiz</div>
+          <div class="mini-card-val">4/5 Correct</div>
+        </div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-icon blue">📈</div>
+        <div>
+          <div class="mini-card-label">Science Score</div>
+          <div class="mini-card-val">Up 18%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat reveal">
+      <div class="stat-num">47,000+</div>
+      <div class="stat-label">NCERT Questions</div>
+    </div>
+    <div class="stat reveal reveal-delay-1">
+      <div class="stat-num">367</div>
+      <div class="stat-label">Chapters Covered</div>
+    </div>
+    <div class="stat reveal reveal-delay-2">
+      <div class="stat-num">Classes 6–10</div>
+      <div class="stat-label">All CBSE Grades</div>
+    </div>
+    <div class="stat reveal reveal-delay-3">
+      <div class="stat-num">5 min</div>
+      <div class="stat-label">Per Day</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works">
+  <div class="inner">
+    <div class="tag reveal">How It Works</div>
+    <h2 class="section-title reveal">Simple. Daily. Effective.</h2>
+    <p class="section-sub reveal">No app to download. Runs on your phone browser. Start in 60 seconds.</p>
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <div class="step-num">1</div>
+        <h3>Pick your subjects</h3>
+        <p>Choose 1, 3, or 5 subjects. We cover Math, Science, English, Hindi, and Social Science for every class.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-num">2</div>
+        <h3>Answer 5 daily questions</h3>
+        <p>Every morning, 5 fresh NCERT MCQs from your syllabus. Instant explanations after each answer.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-num">3</div>
+        <h3>Build your streak</h3>
+        <p>Miss a day and your streak resets. Keep going and watch exam anxiety melt away — concepts stick naturally.</p>
+      </div>
+      <div class="step-card reveal reveal-delay-3">
+        <div class="step-num">4</div>
+        <h3>Track your progress</h3>
+        <p>See which chapters are strong and which need work. Your personal learning map, updated every session.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ DEMO -->
+<section class="quiz-demo-section" id="demo">
+  <div class="inner">
+    <div class="tag reveal">Live Preview</div>
+    <h2 class="section-title reveal">What a daily question looks like</h2>
+    <p class="section-sub reveal">From your actual NCERT textbook. No tricks. No off-syllabus surprises.</p>
+    <div class="quiz-demo-wrap">
+      <div class="quiz-card reveal">
+        <div class="demo-tabs">
+          <button class="demo-tab active" onclick="switchDemo('text',this)">📝 Text MCQ</button>
+          <button class="demo-tab" onclick="switchDemo('diagram',this)">📐 Diagram MCQ</button>
+        </div>
+
+        <!-- Pane 1: Text question -->
+        <div class="demo-pane active" id="dp-text">
+          <div class="quiz-meta">
+            <span class="quiz-chip">Class 9 · Science</span>
+            <span class="quiz-chip active">Question 3 of 5</span>
+          </div>
+          <div class="quiz-q">Which of the following best describes matter, according to your NCERT textbook?</div>
+          <div class="quiz-options">
+            <div class="qopt" onclick="selectOpt(this, false)"><span class="qopt-key">A</span> Matter only exists as solid or liquid</div>
+            <div class="qopt" onclick="selectOpt(this, false)"><span class="qopt-key">B</span> Matter has no definite mass</div>
+            <div class="qopt" onclick="selectOpt(this, true)"><span class="qopt-key">C</span> Matter occupies space and has mass</div>
+            <div class="qopt" onclick="selectOpt(this, false)"><span class="qopt-key">D</span> Matter cannot change its state</div>
+          </div>
+          <div class="quiz-footer">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;">🔥 Your streak</div>
+              <div class="streak-dots">
+                <div class="sdot done">✓</div><div class="sdot done">✓</div><div class="sdot done">✓</div>
+                <div class="sdot today">4</div><div class="sdot future"></div><div class="sdot future"></div><div class="sdot future"></div>
+              </div>
+            </div>
+            <div class="streak-label">3-day streak · Day 4 in progress</div>
+          </div>
+        </div>
+
+        <!-- Pane 2: Diagram question -->
+        <div class="demo-pane" id="dp-diagram">
+          <div class="quiz-meta">
+            <span class="quiz-chip">Class 10 · Mathematics</span>
+            <span class="quiz-chip active">Question 2 of 5</span>
+          </div>
+          <div class="quiz-img-demo">
+            <img src="https://pub-16b20cf36bbe496398d8324667b49018.r2.dev/media/questions/manim_10_ch8_2ba9590d.png"
+                 alt="Right-angled triangle with sides 3, 4, 5 and angle θ at A" loading="lazy" />
+          </div>
+          <div class="quiz-q">In the figure, triangle ABC is right-angled at B. AB = 3, BC = 4, AC = 5. Find sin θ.</div>
+          <div class="quiz-options">
+            <div class="qopt" onclick="selectOpt(this, false)"><span class="qopt-key">A</span> 3/5</div>
+            <div class="qopt" onclick="selectOpt(this, true)"><span class="qopt-key">B</span> 4/5</div>
+            <div class="qopt" onclick="selectOpt(this, false)"><span class="qopt-key">C</span> 5/4</div>
+            <div class="qopt" onclick="selectOpt(this, false)"><span class="qopt-key">D</span> 4/3</div>
+          </div>
+          <div class="quiz-footer">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;">🔥 Your streak</div>
+              <div class="streak-dots">
+                <div class="sdot done">✓</div><div class="sdot done">✓</div><div class="sdot done">✓</div>
+                <div class="sdot today">4</div><div class="sdot future"></div><div class="sdot future"></div><div class="sdot future"></div>
+              </div>
+            </div>
+            <div class="streak-label">3-day streak · Day 4 in progress</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-side reveal reveal-delay-1">
+        <div class="side-card">
+          <div class="side-icon">🧠</div>
+          <h4>AI-Generated from NCERT</h4>
+          <p>Every question is written from the exact NCERT chapter text your teacher uses in class — not from random coaching notes.</p>
+        </div>
+        <div class="side-card">
+          <div class="side-icon">♾️</div>
+          <h4>Never Repeats in a Week</h4>
+          <p>With 47,000+ questions in the bank, your child won't see the same MCQ twice. Fresh content every single session.</p>
+        </div>
+        <div class="side-card">
+          <div class="side-icon">⚡</div>
+          <h4>Instant Explanations</h4>
+          <p>After each answer, a short NCERT-based explanation tells you why. Wrong answers teach just as much as right ones.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FREE WEEK BANNER -->
+<div class="free-banner">
+  <p>🎉 <strong>First 7 days are completely free.</strong> Try any subject, any class — no credit card, no commitment.</p>
+</div>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="inner">
+    <div class="tag reveal">Pricing</div>
+    <h2 class="section-title reveal">Honest, affordable plans</h2>
+    <p class="section-sub reveal">Less than a cup of chai per subject per day. Cancel anytime.</p>
+    <div class="pricing-grid">
+
+      <div class="price-card reveal">
+        <div class="plan-name">Starter</div>
+        <div class="plan-subjects">1 Subject</div>
+        <div class="plan-original">₹149/month</div>
+        <div class="plan-price"><sup>₹</sup>99<sub>/month</sub></div>
+        <div class="plan-saving">You save ₹50 every month</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 1 NCERT subject of your choice</li>
+          <li><span class="check">✓</span> 5 fresh questions every day</li>
+          <li><span class="check">✓</span> Streak tracking & progress</li>
+          <li><span class="check">✓</span> Instant answer explanations</li>
+        </ul>
+        <button class="plan-btn" onclick="scrollToRegister('starter')">Get Started Free →</button>
+      </div>
+
+      <div class="price-card featured reveal reveal-delay-1">
+        <div class="popular-badge">⭐ Most Popular</div>
+        <div class="plan-name">Full Prep</div>
+        <div class="plan-subjects">5 Subjects</div>
+        <div class="plan-original">₹499/month</div>
+        <div class="plan-price"><sup>₹</sup>249<sub>/month</sub></div>
+        <div class="plan-saving">You save ₹250 every month</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> All 5 core NCERT subjects</li>
+          <li><span class="check">✓</span> 25 questions daily across subjects</li>
+          <li><span class="check">✓</span> Per-subject streak & progress map</li>
+          <li><span class="check">✓</span> Chapter-wise strength report</li>
+          <li><span class="check">✓</span> Best value — just ₹50/subject</li>
+        </ul>
+        <button class="plan-btn" onclick="scrollToRegister('fullprep')">Get Started Free →</button>
+      </div>
+
+      <div class="price-card reveal reveal-delay-2">
+        <div class="plan-name">Core</div>
+        <div class="plan-subjects">3 Subjects</div>
+        <div class="plan-original">₹399/month</div>
+        <div class="plan-price"><sup>₹</sup>199<sub>/month</sub></div>
+        <div class="plan-saving">You save ₹200 every month</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> 3 NCERT subjects of your choice</li>
+          <li><span class="check">✓</span> 15 questions daily across subjects</li>
+          <li><span class="check">✓</span> Streak tracking & progress</li>
+          <li><span class="check">✓</span> Instant answer explanations</li>
+        </ul>
+        <button class="plan-btn" onclick="scrollToRegister('core')">Get Started Free →</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section">
+  <div class="inner">
+    <div class="tag reveal">Early Feedback</div>
+    <h2 class="section-title reveal">What parents & students say</h2>
+    <p class="section-sub reveal" style="margin-bottom:32px;">From our June 2026 beta group.</p>
+    <div class="testimonials-scroll reveal">
+      <div class="tcard" style="border-color:rgba(255,107,53,0.3);background:linear-gradient(135deg,rgba(255,107,53,0.06) 0%,var(--card) 100%);min-width:310px;">
+        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;">From the Founder</div>
+        <p style="color:var(--text);">"I got into IIT Bombay EE not by studying more — but by studying every single day. 20 minutes of focused NCERT revision, no breaks. StreakPrep is that habit, built for Class 6–10 students before the pressure really hits."</p>
+        <div class="tauthor" style="margin-top:16px;">
+          <div class="tavatar" style="background:rgba(255,107,53,0.2);color:var(--orange);font-size:0.85rem;font-weight:900;">RM</div>
+          <div>
+            <div class="tauthor-name">Riddhimaa Mishra</div>
+            <div class="tauthor-sub">Founder, StreakPrep · IIT Bombay, Electrical Engineering</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="stars">★★★★★</div>
+        <p>"My daughter's science marks went from 61 to 78 in one unit test. She does it herself every morning now. The streak is the magic — she doesn't want to break it."</p>
+        <div class="tauthor">
+          <div class="tavatar">P</div>
+          <div>
+            <div class="tauthor-name">Priya Agarwal</div>
+            <div class="tauthor-sub">Parent · Class 8 · Lucknow</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="stars">★★★★★</div>
+        <p>"Finally something from the actual NCERT book and not random stuff. I do it after dinner. It's actually fun when you're on a streak and don't want to lose it."</p>
+        <div class="tauthor">
+          <div class="tavatar">A</div>
+          <div>
+            <div class="tauthor-name">Aditya K.</div>
+            <div class="tauthor-sub">Student · Class 10 · Delhi</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="stars">★★★★★</div>
+        <p>"₹249 for 5 subjects is less than one hour of tuition. And this runs every single day. It's the best thing I found this academic year for my son."</p>
+        <div class="tauthor">
+          <div class="tavatar">R</div>
+          <div>
+            <div class="tauthor-name">Rajesh Mehta</div>
+            <div class="tauthor-sub">Parent · Class 9 · Jaipur</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="stars">★★★★★</div>
+        <p>"My son used to hate revision. Now he opens StreakPrep before I even remind him. I think it's because losing a 10-day streak hurts more than a bad grade!"</p>
+        <div class="tauthor">
+          <div class="tavatar">S</div>
+          <div>
+            <div class="tauthor-name">Sunita Verma</div>
+            <div class="tauthor-sub">Parent · Class 7 · Pune</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="inner">
+    <div class="tag reveal">FAQ</div>
+    <h2 class="section-title reveal">Questions? Answered.</h2>
+    <p class="section-sub reveal" style="margin-bottom:32px;">Still unsure? Here's what most parents ask us.</p>
+    <div class="faq-wrap">
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <button class="faq-q">Is this based on the actual NCERT textbook? <i class="faq-chevron">▾</i></button>
+        <div class="faq-a">Yes — every question is generated from the NCERT textbook for your class and subject. Nothing off-syllabus. What your child sees on StreakPrep is exactly what they need for school exams.</div>
+      </div>
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <button class="faq-q">Do I need to download an app? <i class="faq-chevron">▾</i></button>
+        <div class="faq-a">No app needed. StreakPrep runs on any browser — phone, tablet, or laptop. Just bookmark the link and open it every day. WhatsApp daily reminders are coming soon.</div>
+      </div>
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <button class="faq-q">What happens after the free trial? <i class="faq-chevron">▾</i></button>
+        <div class="faq-a">After your 7 free days, you choose a plan — ₹99, ₹199, or ₹249/month depending on how many subjects you want. You only pay if you decide to continue. No card needed to start.</div>
+      </div>
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <button class="faq-q">Which classes and subjects are covered? <i class="faq-chevron">▾</i></button>
+        <div class="faq-a">Classes 6, 7, 8, 9, and 10. Subjects: Mathematics, Science, English, Hindi, and Social Science — all major NCERT textbooks for each class, including Hindi-medium textbooks.</div>
+      </div>
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <button class="faq-q">Can I change subjects after registering? <i class="faq-chevron">▾</i></button>
+        <div class="faq-a">Yes, anytime from your account settings. Your streak and progress are tracked separately per subject, so changing one subject won't affect the others.</div>
+      </div>
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <button class="faq-q">Is this for CBSE only? <i class="faq-chevron">▾</i></button>
+        <div class="faq-a">Currently yes — all questions are from NCERT textbooks, the standard for CBSE. ICSE and state board support is planned. NCERT content is also useful for many state board students.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REGISTER -->
+<section class="register-section" id="register">
+  <div class="tag reveal" style="justify-content:center;">Register Now</div>
+  <h2 class="section-title reveal" style="margin-bottom:12px;">Start your 7-day free trial today</h2>
+  <p class="section-sub reveal" style="margin:0 auto 36px;">First week completely free. No credit card. Takes 60 seconds.</p>
+
+  <div class="register-form reveal" id="reg-form-wrap">
+
+    <!-- Parent contact -->
+    <div class="parent-section-label">Parent / Guardian</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">WhatsApp Number</label>
+        <input type="tel" id="f-phone" class="form-input" placeholder="+91 98765 43210" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email (optional)</label>
+        <input type="email" id="f-email" class="form-input" placeholder="for login link" />
+      </div>
+    </div>
+
+    <hr class="children-divider" />
+
+    <!-- Child blocks injected by JS -->
+    <div id="children-container"></div>
+
+    <button class="add-child-btn" id="add-child-btn" onclick="addChild()">+ Register another child</button>
+
+    <!-- Total plan summary -->
+    <div class="plan-summary">
+      <div class="plan-summary-label" id="plan-label">Full Prep — 5 subjects</div>
+      <div class="plan-summary-price" id="plan-price">₹249/month after free trial</div>
+    </div>
+
+    <button class="submit-btn" onclick="submitReg()">Start My Free 7 Days →</button>
+    <p class="form-note">7 days free from registration. No card required. Cancel anytime.</p>
+  </div>
+
+  <!-- Step 2: OTP verification -->
+  <div class="register-form" id="reg-otp-wrap" style="display:none">
+    <div class="step-icon">📱</div>
+    <div class="step-title">Enter OTP</div>
+    <p class="step-sub" id="otp-desc">We sent a 6-digit code to your WhatsApp</p>
+    <div class="pin-row" id="otp-boxes">
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+    </div>
+    <p id="otp-error" style="color:#EF4444;font-size:0.8rem;text-align:center;min-height:18px;margin:6px 0 14px;"></p>
+    <button class="submit-btn" id="otp-verify-btn" onclick="verifyRegOtp()">Verify OTP →</button>
+    <p style="text-align:center;font-size:0.8rem;color:var(--muted);margin-top:14px;">
+      <span id="resend-timer">Resend in <span id="timer-count">60</span>s</span>
+      <a id="resend-link" href="#" style="display:none;color:var(--orange);" onclick="resendRegOtp(event)">Resend OTP</a>
+    </p>
+  </div>
+
+  <!-- Step 3: PIN setup -->
+  <div class="register-form" id="reg-pin-wrap" style="display:none">
+    <div class="step-icon">🔐</div>
+    <div class="step-title">Create your 4-digit PIN</div>
+    <p class="step-sub">You'll use this to log in instantly from trusted devices — no OTP needed each time</p>
+    <div class="step-label">Enter PIN</div>
+    <div class="pin-row" id="pin-boxes">
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+    </div>
+    <div class="step-label" style="margin-top:16px;">Confirm PIN</div>
+    <div class="pin-row" id="pin-confirm-boxes">
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
+    </div>
+    <p id="pin-error" style="color:#EF4444;font-size:0.8rem;text-align:center;min-height:18px;margin:6px 0 14px;"></p>
+    <button class="submit-btn" id="pin-complete-btn" onclick="completeReg()">Create Account →</button>
+  </div>
+
+  <div class="success-msg" id="success-msg">
+    <div class="success-emoji">🎉</div>
+    <h3>You're in!</h3>
+    <p>We'll send your first quiz link to your WhatsApp shortly.<br/>Your 7-day free trial starts today. Don't break the streak!</p>
+    <br/>
+    <a href="https://wa.me/?text=I%20just%20registered%20for%20StreakPrep%20%E2%80%94%20daily%20NCERT%20quiz%20for%20CBSE%20students.%20First%20week%20free%21%20Check%20it%20out%3A%20https%3A%2F%2Fstreakprep.ai" target="_blank" class="btn-primary" style="display:inline-block;margin-top:8px;">Share on WhatsApp →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Streak<span>Prep</span></div>
+  <div style="font-size:0.8rem;color:var(--muted);margin-bottom:4px;letter-spacing:0.05em;">Small Streaks. Big Leaps.</div>
+  <div style="font-size:0.75rem;color:#3D5070;margin-bottom:14px;">Founded by Riddhimaa Mishra · IIT Bombay, EE</div>
+  <div class="links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Use</a>
+    <a href="mailto:hello@streakprep.ai">hello@streakprep.ai</a>
+  </div>
+  <p>© 2026 StreakPrep. All questions sourced from NCERT textbooks by the National Council of Educational Research and Training.</p>
+</footer>
+
+<script>
+  // ── SCROLL REVEAL ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Initialise first child block with all subjects pre-selected
+  document.addEventListener('DOMContentLoaded', () => addChild(true));
+
+  // ── FAQ ──
+  function toggleFaq(item) {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.faq-a').classList.remove('open');
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      item.querySelector('.faq-a').classList.add('open');
+    }
+  }
+
+  // ── DEMO QUIZ ──
+  let demoAnswered = false;
+  function selectOpt(opt, correct) {
+    if (demoAnswered) return;
+    demoAnswered = true;
+    const pane = opt.closest('.demo-pane');
+    const opts = pane ? pane.querySelectorAll('.qopt') : document.querySelectorAll('.qopt');
+    opts.forEach(o => { o.style.pointerEvents = 'none'; });
+    if (correct) {
+      opt.classList.add('correct');
+    } else {
+      opt.classList.add('wrong');
+      opts.forEach(o => { if (o.onclick.toString().includes(', true)')) o.classList.add('correct'); });
+    }
+    setTimeout(() => {
+      demoAnswered = false;
+      opts.forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents = ''; });
+    }, 2200);
+  }
+
+  function switchDemo(type, btn) {
+    document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.demo-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('dp-' + type).classList.add('active');
+    demoAnswered = false;
+    document.querySelectorAll('.qopt').forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents = ''; });
+  }
+
+  // ── CHILD / SUBJECT MANAGEMENT ──
+  let childIds = [];
+  let nextChildId = 0;
+
+  function planForN(n) {
+    if (n === 0) return { label: 'Select subjects', price: null, paise: 0 };
+    if (n === 1) return { label: 'Starter — 1 subject', price: '₹99/mo', paise: 9900 };
+    if (n === 2) return { label: 'Core Plan — add 1 more subject at no extra cost', price: '₹199/mo', paise: 19900 };
+    if (n === 3) return { label: 'Core — 3 subjects', price: '₹199/mo', paise: 19900 };
+    if (n === 4) return { label: 'Full Prep — add 1 more subject at no extra cost', price: '₹249/mo', paise: 24900 };
+    return { label: 'Full Prep — 5 subjects', price: '₹249/mo', paise: 24900 };
+  }
+
+  function addChild(preCheck = true) {
+    const id = nextChildId++;
+    childIds.push(id);
+    const checked = preCheck ? 'checked' : '';
+    const active  = preCheck ? 'active'  : '';
+    const container = document.getElementById('children-container');
+    const div = document.createElement('div');
+    div.className = 'child-block';
+    div.id = 'child-' + id;
+    div.innerHTML = `
+      <div class="child-block-header" id="child-${id}-header" style="display:none">
+        <span class="child-block-label" id="child-${id}-label"></span>
+        <button class="remove-child-btn" id="child-${id}-remove" onclick="removeChild(${id})">✕ Remove</button>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Student Name</label>
+          <input type="text" id="child-${id}-name" class="form-input" placeholder="e.g. Riya Sharma" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Class</label>
+          <select id="child-${id}-class" class="form-select">
+            <option value="">Select class</option>
+            <option value="6">Class 6</option>
+            <option value="7">Class 7</option>
+            <option value="8">Class 8</option>
+            <option value="9">Class 9</option>
+            <option value="10">Class 10</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Choose Subjects</label>
+        <div class="subject-grid" id="child-${id}-subjects">
+          <label class="subj-label ${active}">
+            <input type="checkbox" value="mathematics" onchange="subjectChanged(${id})" ${checked} />
+            <div class="subj-check"></div> Mathematics
+          </label>
+          <label class="subj-label ${active}">
+            <input type="checkbox" value="science" onchange="subjectChanged(${id})" ${checked} />
+            <div class="subj-check"></div> Science
+          </label>
+          <label class="subj-label ${active}">
+            <input type="checkbox" value="english" onchange="subjectChanged(${id})" ${checked} />
+            <div class="subj-check"></div> English
+          </label>
+          <label class="subj-label ${active}">
+            <input type="checkbox" value="hindi" onchange="subjectChanged(${id})" ${checked} />
+            <div class="subj-check"></div> Hindi
+          </label>
+          <label class="subj-label ${active}" style="grid-column:1/-1">
+            <input type="checkbox" value="social_science" onchange="subjectChanged(${id})" ${checked} />
+            <div class="subj-check"></div> Social Science
+          </label>
+        </div>
+      </div>
+      <div class="child-plan-note" id="child-${id}-plan">${preCheck ? 'Full Prep — 5 subjects · ₹249/mo' : 'Select subjects to see your plan'}</div>
+    `;
+    container.appendChild(div);
+    refreshChildHeaders();
+    updateTotal();
+  }
+
+  function removeChild(id) {
+    document.getElementById('child-' + id).remove();
+    childIds = childIds.filter(i => i !== id);
+    refreshChildHeaders();
+    updateTotal();
+  }
+
+  function refreshChildHeaders() {
+    const multi = childIds.length > 1;
+    childIds.forEach((id, idx) => {
+      const header = document.getElementById('child-' + id + '-header');
+      const label  = document.getElementById('child-' + id + '-label');
+      const remove = document.getElementById('child-' + id + '-remove');
+      if (!header) return;
+      header.style.display = multi ? 'flex' : 'none';
+      if (label)  label.textContent = 'Child ' + (idx + 1);
+      if (remove) remove.style.display = idx === 0 ? 'none' : '';
+    });
+  }
+
+  function subjectChanged(id) {
+    const grid = document.getElementById('child-' + id + '-subjects');
+    grid.querySelectorAll('.subj-label').forEach(l => {
+      l.classList.toggle('active', l.querySelector('input').checked);
+    });
+    const n = grid.querySelectorAll('input:checked').length;
+    const plan = planForN(n);
+    const note = document.getElementById('child-' + id + '-plan');
+    note.textContent = n === 0 ? 'Select subjects to see your plan'
+                               : plan.label + ' · ' + plan.price;
+    updateTotal();
+  }
+
+  function updateTotal() {
+    let totalPaise = 0;
+    let allEmpty = true;
+    childIds.forEach(id => {
+      const n = document.querySelectorAll('#child-' + id + '-subjects input:checked').length;
+      if (n > 0) allEmpty = false;
+      totalPaise += planForN(n).paise;
+    });
+    const label = document.getElementById('plan-label');
+    const price = document.getElementById('plan-price');
+    if (allEmpty) { label.textContent = 'Select subjects to see your plan'; price.textContent = '—'; return; }
+    if (childIds.length === 1) {
+      const n = document.querySelectorAll('#child-' + childIds[0] + '-subjects input:checked').length;
+      const p = planForN(n);
+      label.textContent = p.label;
+      price.textContent = n === 0 ? '—' : p.price.replace('/mo', '/month') + ' after free trial';
+    } else {
+      label.textContent = childIds.length + ' children — combined plan';
+      price.textContent = '₹' + (totalPaise / 100) + '/month after free trial';
+    }
+  }
+
+  function scrollToRegister(plan) {
+    document.getElementById('register').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      if (childIds.length === 0) return;
+      const id = childIds[0];
+      const inputs = document.querySelectorAll('#child-' + id + '-subjects input');
+      inputs.forEach((cb, i) => {
+        cb.checked = plan === 'starter' ? i === 0 : plan === 'core' ? i < 3 : true;
+      });
+      subjectChanged(id);
+    }, 600);
+  }
+
+  // ── PIN / OTP BOX HELPERS ──
+  function setupPinBoxes(containerId) {
+    const boxes = [...document.querySelectorAll('#' + containerId + ' .pin-box')];
+    boxes.forEach((box, i) => {
+      box.addEventListener('input', e => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val ? val[val.length - 1] : '';
+        e.target.classList.toggle('filled', !!e.target.value);
+        if (e.target.value && i < boxes.length - 1) boxes[i + 1].focus();
+      });
+      box.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !box.value && i > 0) { boxes[i - 1].focus(); }
+      });
+      box.addEventListener('paste', e => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+        boxes.forEach((b, j) => { b.value = text[j] || ''; b.classList.toggle('filled', !!b.value); });
+        boxes[Math.min(text.length, boxes.length - 1)].focus();
+      });
+    });
+  }
+
+  function getPinValue(containerId) {
+    return [...document.querySelectorAll('#' + containerId + ' .pin-box')].map(b => b.value).join('');
+  }
+
+  function showRegStep(step) {
+    document.getElementById('reg-form-wrap').style.display  = step === 'form'    ? '' : 'none';
+    document.getElementById('reg-otp-wrap').style.display   = step === 'otp'     ? '' : 'none';
+    document.getElementById('reg-pin-wrap').style.display   = step === 'pin'     ? '' : 'none';
+    document.getElementById('success-msg').style.display    = step === 'success' ? 'block' : 'none';
+    const scrollTarget = step === 'pin' ? 'reg-pin-wrap' : step === 'otp' ? 'reg-otp-wrap' : null;
+    if (scrollTarget) document.getElementById(scrollTarget).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  let regState = {};
+  let resendTimerInterval = null;
+
+  function startResendTimer() {
+    let secs = 60;
+    document.getElementById('resend-timer').style.display = '';
+    document.getElementById('resend-link').style.display  = 'none';
+    document.getElementById('timer-count').textContent = secs;
+    clearInterval(resendTimerInterval);
+    resendTimerInterval = setInterval(() => {
+      secs--;
+      document.getElementById('timer-count').textContent = secs;
+      if (secs <= 0) {
+        clearInterval(resendTimerInterval);
+        document.getElementById('resend-timer').style.display = 'none';
+        document.getElementById('resend-link').style.display  = '';
+      }
+    }, 1000);
+  }
+
+  async function resendRegOtp(e) {
+    e.preventDefault();
+    document.getElementById('resend-link').style.display = 'none';
+    const res = await fetch('/api/register/init', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: regState.phone }),
+    });
+    startResendTimer();
+    if (!res.ok) document.getElementById('otp-error').textContent = 'Could not resend. Try again.';
+  }
+
+  // ── REGISTER STEP 1: Validate → show PIN setup (OTP skipped until WhatsApp Business ready) ──
+  async function submitReg() {
+    const phone = document.getElementById('f-phone').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    if (!phone) { shake('f-phone'); return; }
+
+    const children = [];
+    for (const id of childIds) {
+      const name     = document.getElementById('child-' + id + '-name').value.trim();
+      const cls      = document.getElementById('child-' + id + '-class').value;
+      const subjects = [...document.querySelectorAll('#child-' + id + '-subjects input:checked')].map(c => c.value);
+      if (!name)            { shake('child-' + id + '-name');  return; }
+      if (!cls)             { shake('child-' + id + '-class'); return; }
+      if (!subjects.length) { alert('Please select at least one subject for each child.'); return; }
+      children.push({ name, class: cls, subjects });
+    }
+
+    // Quick duplicate check before showing PIN step
+    const btn = document.querySelector('#reg-form-wrap .submit-btn');
+    btn.disabled = true; btn.textContent = 'Checking…';
+    try {
+      const res = await fetch('/api/register/init', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      if (res.status === 409) {
+        btn.disabled = false; btn.textContent = 'Start My Free 7 Days →';
+        showFormError('This number is already registered. <a href="/login" style="color:var(--orange)">Click here to login →</a>');
+        return;
+      }
+    } catch { /* proceed — complete step will catch real errors */ }
+
+    btn.disabled = false; btn.textContent = 'Start My Free 7 Days →';
+    regState = { phone, email, children };
+    showRegStep('pin');
+    setupPinBoxes('pin-boxes');
+    setupPinBoxes('pin-confirm-boxes');
+  }
+
+  // ── REGISTER STEP 2: Verify OTP ──
+  async function verifyRegOtp() {
+    const otp = getPinValue('otp-boxes');
+    const errEl = document.getElementById('otp-error');
+    errEl.textContent = '';
+    if (otp.length !== 4) { errEl.textContent = 'Enter all 4 digits.'; return; }
+
+    const btn = document.getElementById('otp-verify-btn');
+    btn.disabled = true; btn.textContent = 'Verifying…';
+
+    try {
+      const res  = await fetch('/api/register/verify-otp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: regState.phone, otp }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        btn.disabled = false; btn.textContent = 'Verify OTP →';
+        errEl.textContent = data.error === 'otp_incorrect' ? 'Incorrect OTP. Please try again.' : 'Verification failed. Please try again.';
+        return;
+      }
+
+      showRegStep('pin');
+      setupPinBoxes('pin-boxes');
+      setupPinBoxes('pin-confirm-boxes');
+
+    } catch {
+      btn.disabled = false; btn.textContent = 'Verify OTP →';
+      errEl.textContent = 'Network error. Please try again.';
+    }
+  }
+
+  // ── REGISTER STEP 3: Set PIN + Create Account ──
+  async function completeReg() {
+    const pin        = getPinValue('pin-boxes');
+    const pinConfirm = getPinValue('pin-confirm-boxes');
+    const errEl      = document.getElementById('pin-error');
+    errEl.textContent = '';
+
+    if (pin.length !== 4)       { errEl.textContent = 'Enter all 4 digits.'; return; }
+    if (pin !== pinConfirm)     { errEl.textContent = 'PINs do not match. Try again.'; return; }
+
+    const btn = document.getElementById('pin-complete-btn');
+    btn.disabled = true; btn.textContent = 'Creating account…';
+
+    try {
+      const res  = await fetch('/api/register/complete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...regState, pin }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        btn.disabled = false; btn.textContent = 'Create Account →';
+        errEl.textContent = 'Something went wrong. Please start over.';
+        return;
+      }
+
+      // Persist tokens in localStorage
+      if (data.sessionToken) localStorage.setItem('sp_session', data.sessionToken);
+      if (data.deviceToken)  localStorage.setItem('sp_device',  data.deviceToken);
+
+      showRegStep('success');
+
+    } catch {
+      btn.disabled = false; btn.textContent = 'Create Account →';
+      errEl.textContent = 'Network error. Please try again.';
+    }
+  }
+
+  function showFormError(html) {
+    let el = document.getElementById('form-error');
+    if (!el) {
+      el = document.createElement('p');
+      el.id = 'form-error';
+      el.style.cssText = 'font-size:0.82rem;color:#EF4444;text-align:center;margin-top:10px;';
+      document.querySelector('#reg-form-wrap .submit-btn').insertAdjacentElement('afterend', el);
+    }
+    el.innerHTML = html;
+  }
+
+  function shake(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.borderColor = '#EF4444';
+    el.focus();
+    setTimeout(() => el.style.borderColor = '', 1500);
+  }
+</script>
+</body>
+</html>

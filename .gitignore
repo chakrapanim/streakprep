@@ -1,0 +1,14 @@
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# gstack tooling
+.gstack/
+
+# Dependencies
+node_modules/
+
+# Logs / OS
+*.log
+.DS_Store
