@@ -2,6 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // ── Returning subscribed users skip the marketing page entirely ──
+    // Same check as login.html's "already logged in" redirect. Runs synchronously,
+    // before any CSS/content loads, so there's no flash of the landing page first.
+    if (localStorage.getItem('sp_session')) window.location.replace('/dashboard');
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>StreakPrep — Small Streaks. Big Leaps.</title>
   <meta name="description" content="Small Streaks. Big Leaps. 5 NCERT questions a day for CBSE students. Classes 6–10. First week free." />
@@ -98,6 +104,18 @@
       font-size: 0.62rem; font-weight: 600; letter-spacing: 0.06em;
       color: var(--muted); text-transform: uppercase;
       display: block; margin-top: -2px;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 28px;
+    }
+    .nav-links a {
+      color: var(--muted); text-decoration: none;
+      font-weight: 600; font-size: 0.875rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 860px) {
+      .nav-links { display: none; }
     }
     .nav-right {
       display: flex; align-items: center; gap: 10px;
@@ -692,6 +710,11 @@
 <nav>
   <div class="nav-inner">
     <a href="#" class="logo">Streak<span>Prep</span><em class="logo-tagline">Small Streaks. Big Leaps.</em></a>
+    <div class="nav-links">
+      <a href="#how-it-works">How It Works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
     <div class="nav-right">
       <a href="/login" class="nav-login">Login</a>
       <a href="#register" class="nav-cta">Start Free Trial</a>
@@ -1017,7 +1040,7 @@
 </section>
 
 <!-- FAQ -->
-<section class="faq-section">
+<section class="faq-section" id="faq">
   <div class="inner">
     <div class="tag reveal">FAQ</div>
     <h2 class="section-title reveal">Questions? Answered.</h2>
