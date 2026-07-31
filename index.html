@@ -32,7 +32,6 @@
       --orange-glow: rgba(255,107,53,0.18);
       --orange-dark: #E55A26;
       --green: #22C55E;
-      --green-bg: #DCFCE7;
       --dark: #0B0F1A;
       --card: #131929;
       --border: rgba(255,255,255,0.08);
@@ -451,17 +450,6 @@
       box-shadow: 0 8px 30px rgba(255,107,53,0.3);
     }
 
-    /* ── FREE WEEK BANNER ── */
-    .free-banner {
-      position: relative; z-index: 1;
-      background: linear-gradient(135deg, #166534 0%, #14532D 100%);
-      padding: 20px 24px; text-align: center;
-      border-top: 1px solid rgba(74,222,128,0.2);
-      border-bottom: 1px solid rgba(74,222,128,0.2);
-    }
-    .free-banner p { font-size: 0.95rem; font-weight: 600; color: #BBF7D0; }
-    .free-banner strong { color: white; }
-
     /* ── TESTIMONIALS ── */
     .testimonials-section { position: relative; z-index: 1; padding: 80px 20px; overflow: hidden; }
     .testimonials-scroll {
@@ -540,7 +528,7 @@
       transition: border-color 0.2s, background 0.2s;
       -webkit-appearance: none;
     }
-    .form-input::placeholder { color: #3D5070; }
+    .form-input::placeholder { color: var(--muted); }
     .form-input:focus, .form-select:focus {
       outline: none; border-color: var(--orange);
       background: rgba(255,107,53,0.04);
@@ -632,7 +620,7 @@
     .step-title { font-size: 1.15rem; font-weight: 800; text-align: center; margin-bottom: 6px; }
     .step-sub   { font-size: 0.82rem; color: var(--muted); text-align: center; margin-bottom: 22px; line-height: 1.5; }
     .step-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
-    .form-note { font-size: 0.77rem; color: #3D5070; text-align: center; margin-top: 12px; }
+    .form-note { font-size: 0.77rem; color: var(--muted); text-align: center; margin-top: 12px; }
     .success-msg { display: none; text-align: center; padding: 40px 10px; }
     .success-emoji { font-size: 3.5rem; margin-bottom: 16px; }
     .success-msg h3 { font-size: 1.4rem; font-weight: 900; color: var(--green); margin-bottom: 10px; }
@@ -734,8 +722,7 @@
     <a href="#register" class="btn-primary">Start Free — No Card Needed</a>
     <a href="#how-it-works" class="btn-ghost">See How It Works</a>
   </div>
-  <p class="hero-trust">47,000+ questions · Class 6–10 · All NCERT subjects</p>
-  <p class="hero-trust" style="margin-top:6px;color:var(--muted);">Built by an IIT Bombay engineer who lived this habit.</p>
+  <p class="hero-trust" style="color:var(--muted);">Built by an IIT Bombay engineer who lived this habit.</p>
 
   <div class="hero-visual">
     <div class="streak-card-row">
@@ -905,11 +892,6 @@
     </div>
   </div>
 </section>
-
-<!-- FREE WEEK BANNER -->
-<div class="free-banner">
-  <p>🎉 <strong>First 7 days are completely free.</strong> Try any subject, any class — no credit card, no commitment.</p>
-</div>
 
 <!-- PRICING -->
 <section class="pricing-section" id="pricing">
@@ -1167,7 +1149,7 @@
 <footer>
   <div class="footer-logo">Streak<span>Prep</span></div>
   <div style="font-size:0.8rem;color:var(--muted);margin-bottom:4px;letter-spacing:0.05em;">Small Streaks. Big Leaps.</div>
-  <div style="font-size:0.75rem;color:#3D5070;margin-bottom:14px;">Founded by Riddhimaa Mishra · IIT Bombay, EE</div>
+  <div style="font-size:0.75rem;color:var(--muted);margin-bottom:14px;">Founded by Riddhimaa Mishra · IIT Bombay, EE</div>
   <div class="links">
     <a href="#">Privacy Policy</a>
     <a href="#">Terms of Use</a>
