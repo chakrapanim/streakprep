@@ -48,31 +48,48 @@ export async function createAndSendOtp(db, phone, env) {
   const otp           = randomOtp();
   const otpHash       = await hashOtp(otp);
 
-  await db.prepare(
+  const inserted = await db.prepare(
     'INSERT INTO otp_requests (phone, otp_hash, expires_at, created_at) VALUES (?, ?, ?, ?)'
   ).bind(phone, otpHash, now + expirySeconds, now).run();
 
-  const channel = await sendOtp(env, phone, otp);
+  const channel = await sendOtp(env, phone, otp, db, inserted.meta.last_row_id);
   return { otp, channel };
 }
 
-// WhatsApp first (primary), SMS on any WhatsApp failure (fallback), dev-log if neither configured.
-async function sendOtp(env, phone, otp) {
-  if (whatsappConfigured(env)) {
+// WhatsApp first (primary), SMS on WhatsApp failure (fallback) if configured, dev-log if
+// neither channel is configured. Key rule: a *configured* channel that fails must throw —
+// we only fall through to dev-log when nothing is configured, so a WhatsApp-only setup
+// surfaces send failures to the caller instead of silently pretending success.
+async function sendOtp(env, phone, otp, db, otpRowId) {
+  const hasWhatsApp = whatsappConfigured(env);
+  const hasSms      = !!env.MSG91_API_KEY;
+
+  // Dev mode — nothing configured, log instead of sending.
+  if (!hasWhatsApp && !hasSms) {
+    console.log(`[OTP DEV] ${phone} → ${otp}`);
+    return 'dev';
+  }
+
+  if (hasWhatsApp) {
     try {
-      await sendViaWhatsApp(env, phone, otp);
+      const requestId = await sendViaWhatsApp(env, phone, otp);
+      // MSG91's send call only confirms the request was accepted, not that it actually
+      // delivered — real outcome (sent/delivered/failed/read) arrives later via the
+      // webhook at api/webhooks/msg91-whatsapp.js, correlated by this request_id.
+      if (requestId && db && otpRowId) {
+        await db.prepare('UPDATE otp_requests SET msg91_request_id = ? WHERE id = ?')
+          .bind(requestId, otpRowId).run();
+      }
       return 'whatsapp';
     } catch (e) {
+      // Surface the failure unless we have an SMS fallback to try.
+      if (!hasSms) throw e;
       console.log('[OTP] WhatsApp send failed, falling back to SMS:', e?.message || e);
     }
   }
-  if (env.MSG91_API_KEY) {
-    await sendViaMSG91(phone, otp, env.MSG91_API_KEY, env.MSG91_TEMPLATE_ID);
-    return 'sms';
-  }
-  // Dev mode — log, don't send.
-  console.log(`[OTP DEV] ${phone} → ${otp}`);
-  return 'dev';
+
+  await sendViaMSG91(phone, otp, env.MSG91_API_KEY, env.MSG91_TEMPLATE_ID);
+  return 'sms';
 }
 
 export async function verifyOtp(db, phone, otp) {
@@ -127,16 +144,18 @@ async function sendViaMSG91(phone, otp, apiKey, templateId) {
 }
 
 // ── WhatsApp (primary) — MSG91 v5 WhatsApp outbound template message ──
-// IMPORTANT: confirm the exact endpoint + payload against your MSG91 console
-// (WhatsApp → your integrated number → "API" / cURL sample). The structure below
-// matches MSG91's documented v5 "send template" shape, but template variable names
-// (body_1, button_1) and the language code depend on how YOUR Authentication template
-// is built. This is the ONLY function that needs editing once those values are known.
+// Endpoint + payload confirmed against MSG91's "Send WhatsApp Template" cURL (2026-07):
+// POST .../whatsapp-outbound-message/bulk/ with content_type=template and the
+// payload/template/to_and_components shape below. One thing still unverified: the
+// copy-code button component (button_1). WhatsApp Authentication templates require the
+// OTP echoed into the copy-code button in addition to the body; the key below follows
+// MSG91's documented auth format but should be confirmed on the first live send once the
+// template is approved.
 async function sendViaWhatsApp(env, phone, otp) {
   const mobile = phone.replace('+', '');
   const resp = await fetch('https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', authkey: env.MSG91_WA_AUTHKEY },
+    headers: { accept: 'application/json', 'content-type': 'application/json', authkey: env.MSG91_WA_AUTHKEY },
     body: JSON.stringify({
       integrated_number: env.MSG91_WA_INTEGRATED_NUMBER,
       content_type: 'template',
@@ -161,9 +180,12 @@ async function sendViaWhatsApp(env, phone, otp) {
   });
   if (!resp.ok) throw new Error('whatsapp_http_' + resp.status);
   const data = await resp.json().catch(() => ({}));
-  // MSG91 returns { type: 'success' | 'error', ... }. Treat anything non-success as a
-  // failure so the SMS fallback fires.
-  if (data && data.type && data.type !== 'success') {
-    throw new Error('whatsapp_api_' + (data.message || data.type));
+  // MSG91 returns { status: 'success' | 'error', hasError, data|errors, request_id, ... }.
+  // Treat anything non-success as a failure so the SMS fallback fires. NOTE: a 'success'
+  // here only means MSG91 accepted the request for delivery — it does NOT mean the
+  // message actually reached the recipient (bad template/number fail asynchronously).
+  if (data && data.status && data.status !== 'success') {
+    throw new Error('whatsapp_api_' + (data.errors ? JSON.stringify(data.errors) : data.status));
   }
+  return data && data.request_id;
 }

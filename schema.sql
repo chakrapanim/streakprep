@@ -64,16 +64,21 @@ CREATE INDEX IF NOT EXISTS idx_subs_trial_end ON subscriptions(trial_ends_at);
 -- OTP REQUESTS (WhatsApp login)
 -- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS otp_requests (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  phone      TEXT    NOT NULL,
-  otp_hash   TEXT    NOT NULL,   -- SHA-256 of OTP, never store plaintext
-  expires_at INTEGER NOT NULL,
-  attempts   INTEGER NOT NULL DEFAULT 0,
-  verified   INTEGER NOT NULL DEFAULT 0,
-  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+  phone                TEXT    NOT NULL,
+  otp_hash             TEXT    NOT NULL,   -- SHA-256 of OTP, never store plaintext
+  expires_at           INTEGER NOT NULL,
+  attempts             INTEGER NOT NULL DEFAULT 0,
+  verified             INTEGER NOT NULL DEFAULT 0,
+  created_at           INTEGER NOT NULL DEFAULT (unixepoch()),
+  msg91_request_id     TEXT,    -- correlates to MSG91's async delivery-report webhook
+  delivery_status      TEXT,    -- sent | delivered | failed | read (from webhook, not the send call)
+  delivery_reason      TEXT,    -- MSG91 failure reason, when delivery_status = 'failed'
+  delivery_updated_at  INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS idx_otp_phone ON otp_requests(phone, verified);
+CREATE INDEX IF NOT EXISTS idx_otp_msg91_request_id ON otp_requests(msg91_request_id);
 
 -- ─────────────────────────────────────────
 -- SESSIONS (auth)
