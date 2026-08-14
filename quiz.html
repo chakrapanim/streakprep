@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/track.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiz — StreakPrep</title>
@@ -412,12 +413,14 @@
         headers: { 'Authorization': 'Bearer ' + session },
       });
     } catch {
+      track('quiz_load_failed', { reason: 'network' });
       showError('Couldn’t reach the server. Check your connection and try again.', 'Retry', '/quiz'); return;
     }
     if (res.status === 401) { localStorage.removeItem('sp_session'); window.location.href = '/login'; return; }
-    if (res.status === 403) { showError('Your subscription has ended.', 'Subscribe to continue', '/pay'); return; }
+    if (res.status === 403) { track('quiz_load_failed', { reason: 'subscription_ended' }); showError('Your subscription has ended.', 'Subscribe to continue', '/pay'); return; }
     try { data = await res.json(); } catch { data = {}; }
     if (!res.ok && data.error !== 'all_done') {
+      track('quiz_load_failed', { reason: data.error || 'http_' + res.status });
       const msg = res.status >= 500
         ? 'Something went wrong on our end. Please try again in a moment.'
         : 'Could not load quiz. Please try again.';
@@ -449,10 +452,12 @@
     grade         = data.grade;
 
     if (!questions.length) {
+      track('quiz_load_failed', { reason: 'no_questions', subject });
       showError('No questions available right now. Try again later.', 'Back to Dashboard', '/dashboard');
       return;
     }
 
+    track('quiz_start', { subject, grade, questionCount: questions.length });
     initSidebar(data);
     renderQuestion();
   }
@@ -767,6 +772,7 @@
         body: JSON.stringify({ questionId, reason, note }),
       });
       if (res.ok) {
+        track('quiz_question_flagged', { questionId, reason, subject });
         flaggedIds.add(questionId);
         closeFlagModal();
         const fb = document.getElementById('flag-btn');
@@ -795,10 +801,12 @@
       });
       result = await res.json();
     } catch {
+      track('quiz_submit_failed', { subject, quizSessionId });
       page.innerHTML = '<div class="err-box"><h2>Submit failed</h2><p>Could not save your results. Please try again.</p><a href="/dashboard" class="btn-secondary" style="max-width:300px;margin:0 auto">Back to Dashboard</a></div>';
       return;
     }
 
+    track('quiz_complete', { subject, score: result.score, total: result.total || questions.length, allDone: !!result.allDone });
     showScore(result);
   }
 

@@ -162,6 +162,29 @@ CREATE TABLE IF NOT EXISTS referrals (
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_parent_id);
 
 -- ─────────────────────────────────────────
+-- EVENTS (click-stream / funnel telemetry, self-hosted)
+-- anon_id persists in localStorage from first landing-page visit, before any
+-- login exists to key off of; parent_id/student_id fill in once authenticated.
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS events (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_name TEXT    NOT NULL,
+  anon_id    TEXT,
+  session_id TEXT,
+  parent_id  INTEGER,
+  student_id INTEGER,
+  props      TEXT,     -- JSON, event-specific details
+  path       TEXT,
+  referrer   TEXT,
+  user_agent TEXT,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_name    ON events(event_name, created_at);
+CREATE INDEX IF NOT EXISTS idx_events_anon    ON events(anon_id);
+CREATE INDEX IF NOT EXISTS idx_events_parent  ON events(parent_id);
+
+-- ─────────────────────────────────────────
 -- PAYMENT EVENTS (immutable ledger)
 -- Every Razorpay webhook lands here before touching subscriptions
 -- ─────────────────────────────────────────

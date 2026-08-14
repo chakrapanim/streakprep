@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/track.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login — StreakPrep</title>
@@ -205,7 +206,8 @@
   // ── Check if already logged in ──
   (function () {
     const session = localStorage.getItem('sp_session');
-    if (session) window.location.href = '/dashboard';
+    if (session) { window.location.href = '/dashboard'; return; }
+    track('login_view');
   })();
 
   // ── PIN box helpers ──
@@ -273,11 +275,13 @@
       const data = await res.json();
 
       if (res.status === 404) {
+        track('login_phone_not_registered');
         btn.disabled = false; btn.textContent = 'Continue →';
         errEl.innerHTML = 'Number not registered. <a href="/#register" style="color:var(--orange)">Sign up free →</a>';
         return;
       }
       if (res.status === 429) {
+        track('login_rate_limited', { reason: data.error });
         btn.disabled = false; btn.textContent = 'Continue →';
         errEl.textContent = data.error === 'cooldown'
           ? `Please wait ${formatWait(data.retryAfter || 60)} before requesting another code.`
@@ -297,6 +301,7 @@
         ? 'Trusted device detected — just enter your PIN'
         : 'New device — enter the code we sent to your WhatsApp, then your PIN';
       document.getElementById('l-otp-section').style.display = isTrusted ? 'none' : '';
+      track('login_credentials_prompted', { method: loginMethod });
 
       btn.disabled = false; btn.textContent = 'Continue →';
       showStep('step-pin');
@@ -345,6 +350,7 @@
       const data = await res.json();
 
       if (res.status === 401) {
+        track('login_failed', { reason: data.error, method: loginMethod });
         btn.disabled = false; btn.textContent = 'Login →';
         errEl.textContent = data.error === 'pin_incorrect' ? 'Incorrect PIN. Please try again.'
           : data.error === 'otp_incorrect' ? 'Incorrect WhatsApp code. Please try again.'
@@ -352,11 +358,13 @@
         return;
       }
       if (res.status === 429) {
+        track('login_rate_limited', { reason: data.error });
         btn.disabled = false; btn.textContent = 'Login →';
         errEl.textContent = `Too many attempts. Please try again in ${formatWait(data.retryAfter || 3600)}.`;
         return;
       }
       if (!res.ok) {
+        track('login_failed', { reason: 'http_' + res.status, method: loginMethod });
         btn.disabled = false; btn.textContent = 'Login →';
         errEl.textContent = 'Something went wrong. Please try again.';
         return;
@@ -365,6 +373,7 @@
       if (data.sessionToken) localStorage.setItem('sp_session', data.sessionToken);
       if (data.deviceToken)  localStorage.setItem('sp_device',  data.deviceToken);
 
+      track('login_success', { method: loginMethod });
       showStep('step-success');
       setTimeout(() => window.location.href = '/dashboard', 1200);
 
@@ -409,6 +418,7 @@
       document.getElementById('reset-sub').textContent =
         `Enter the code sent to your ${channelLabel(data.channel)}, then choose a new PIN`;
       document.getElementById('reset-err').textContent = '';
+      track('forgot_pin_start', { channel: data.channel });
       showStep('step-reset');
       setupPinBoxes('r-otp-boxes');
       setupPinBoxes('r-pin-boxes');
@@ -457,12 +467,13 @@
       });
       const data = await res.json().catch(() => ({}));
 
-      if (res.status === 401) { btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = 'Incorrect or expired code. Try resending.'; return; }
-      if (res.status === 429) { btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = `Too many attempts. Try again in ${formatWait(data.retryAfter || 3600)}.`; return; }
-      if (!res.ok)            { btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = 'Something went wrong. Please try again.'; return; }
+      if (res.status === 401) { track('pin_reset_failed', { reason: data.error || 'otp' }); btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = 'Incorrect or expired code. Try resending.'; return; }
+      if (res.status === 429) { track('pin_reset_failed', { reason: 'rate_limit' }); btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = `Too many attempts. Try again in ${formatWait(data.retryAfter || 3600)}.`; return; }
+      if (!res.ok)            { track('pin_reset_failed', { reason: 'http_' + res.status }); btn.disabled = false; btn.textContent = 'Set new PIN →'; errEl.textContent = 'Something went wrong. Please try again.'; return; }
 
       if (data.sessionToken) localStorage.setItem('sp_session', data.sessionToken);
       if (data.deviceToken)  localStorage.setItem('sp_device',  data.deviceToken);
+      track('pin_reset_complete');
       showStep('step-success');
       setTimeout(() => window.location.href = '/dashboard', 1200);
     } catch {

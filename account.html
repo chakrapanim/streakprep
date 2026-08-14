@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/track.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Account — StreakPrep</title>
@@ -174,6 +175,7 @@
 
     accountData = data;
     selectedSubjects = [...data.student.subjects];
+    track('account_view', { subscriptionType: data.subscription.type });
     renderPage();
   }
 
@@ -390,6 +392,7 @@
         return;
       }
       accountData.student.subjects = [...selectedSubjects];
+      track('subjects_updated', { subjectCount: selectedSubjects.length });
       document.getElementById('subj-ok').textContent = '✓ Subjects updated!';
       setTimeout(() => {
         cancelSubjectEdit();
@@ -456,9 +459,10 @@
       const data = await res.json();
       btn.disabled = false; btn.textContent = 'Update PIN';
 
-      if (res.status === 401) { errEl.textContent = 'Current PIN is incorrect.'; return; }
-      if (!res.ok) { errEl.textContent = data.error || 'Update failed.'; return; }
+      if (res.status === 401) { track('pin_change_failed', { reason: 'current_pin_incorrect' }); errEl.textContent = 'Current PIN is incorrect.'; return; }
+      if (!res.ok) { track('pin_change_failed', { reason: data.error || 'http_' + res.status }); errEl.textContent = data.error || 'Update failed.'; return; }
 
+      track('pin_change_success');
       okEl.textContent = '✓ PIN updated successfully!';
       clearPinBoxes('cur-pin-boxes');
       clearPinBoxes('new-pin-boxes');

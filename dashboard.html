@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/track.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — StreakPrep</title>
@@ -152,13 +153,15 @@
         headers: { 'Authorization': 'Bearer ' + session },
       });
       if (res.status === 401) { clearAndRedirect(); return; }
-      if (!res.ok) { showError('Could not load dashboard. Please try again.'); return; }
+      if (!res.ok) { track('dashboard_load_failed', { reason: 'http_' + res.status }); showError('Could not load dashboard. Please try again.'); return; }
       data = await res.json();
     } catch {
+      track('dashboard_load_failed', { reason: 'network' });
       showError('Network error. Please check your connection.');
       return;
     }
 
+    track('dashboard_view', { subscriptionType: data.subscription.type, subjectCount: data.student.subjects.length });
     renderDashboard(data);
   }
 
@@ -244,12 +247,13 @@
 
       <div class="subject-grid">${subjectCards}</div>
 
-      <a href="${ctaHref}" class="${ctaCls}">${ctaLabel}</a>
+      <a href="${ctaHref}" class="${ctaCls}" onclick="track('quiz_cta_click', {target: '${ctaHref}', canQuiz: ${canQuiz}})">${ctaLabel}</a>
       ${allDone ? '<p class="all-done-msg">Come back tomorrow to keep your streak alive!</p>' : ''}
     `;
   }
 
   async function switchProfile(studentId) {
+    track('profile_switch', { studentId });
     const session = localStorage.getItem('sp_session');
     await fetch('/api/session/switch', {
       method: 'POST',
@@ -261,6 +265,7 @@
 
   function logout(e) {
     e.preventDefault();
+    track('logout');
     localStorage.removeItem('sp_session');
     localStorage.removeItem('sp_device');
     window.location.href = '/login';

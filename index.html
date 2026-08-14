@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/track.js"></script>
   <meta charset="UTF-8" />
   <script>
     // ── Returning subscribed users skip the marketing page entirely ──
     // Same check as login.html's "already logged in" redirect. Runs synchronously,
     // before any CSS/content loads, so there's no flash of the landing page first.
-    if (localStorage.getItem('sp_session')) window.location.replace('/dashboard');
+    if (localStorage.getItem('sp_session')) {
+      window.location.replace('/dashboard');
+    } else {
+      track('landing_view');
+    }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>StreakPrep — Small Streaks. Big Leaps.</title>
@@ -705,7 +710,7 @@
     </div>
     <div class="nav-right">
       <a href="/login" class="nav-login">Login</a>
-      <a href="#register" class="nav-cta">Start Free Trial</a>
+      <a href="#register" class="nav-cta" onclick="track('landing_cta_click', {cta:'nav'})">Start Free Trial</a>
     </div>
   </div>
 </nav>
@@ -719,7 +724,7 @@
   <h1>5 questions a day.<br/>A <span class="accent">study streak</span> that sticks.</h1>
   <p class="hero-sub">Daily NCERT MCQs for CBSE students. Classes 6–10. Takes 5 minutes — on the website or straight on WhatsApp.</p>
   <div class="hero-actions">
-    <a href="#register" class="btn-primary">Start Free — No Card Needed</a>
+    <a href="#register" class="btn-primary" onclick="track('landing_cta_click', {cta:'hero'})">Start Free — No Card Needed</a>
     <a href="#how-it-works" class="btn-ghost">See How It Works</a>
   </div>
   <p class="hero-trust" style="color:var(--muted);">Built by an IIT Bombay engineer who lived this habit.</p>
@@ -1347,6 +1352,7 @@
   }
 
   function scrollToRegister(plan) {
+    track('landing_cta_click', { cta: 'plan_' + plan });
     document.getElementById('register').scrollIntoView({ behavior: 'smooth' });
     setTimeout(() => {
       if (childIds.length === 0) return;
@@ -1442,6 +1448,8 @@
       children.push({ name, class: cls, subjects });
     }
 
+    track('signup_start');
+
     // Quick duplicate check before showing PIN step
     const btn = document.querySelector('#reg-form-wrap .submit-btn');
     btn.disabled = true; btn.textContent = 'Checking…';
@@ -1451,12 +1459,14 @@
         body: JSON.stringify({ phone }),
       });
       if (res.status === 409) {
+        track('signup_duplicate_phone');
         btn.disabled = false; btn.textContent = 'Start My Free 7 Days →';
         showFormError('This number is already registered. <a href="/login" style="color:var(--orange)">Click here to login →</a>');
         return;
       }
     } catch { /* proceed — complete step will catch real errors */ }
 
+    track('signup_otp_sent');
     btn.disabled = false; btn.textContent = 'Start My Free 7 Days →';
     regState = { phone, email, children };
     showRegStep('otp');
@@ -1482,11 +1492,13 @@
       const data = await res.json();
 
       if (!res.ok) {
+        track('signup_otp_failed', { reason: data.error });
         btn.disabled = false; btn.textContent = 'Verify OTP →';
         errEl.textContent = data.error === 'otp_incorrect' ? 'Incorrect OTP. Please try again.' : 'Verification failed. Please try again.';
         return;
       }
 
+      track('signup_otp_verified');
       showRegStep('pin');
       setupPinBoxes('pin-boxes');
       setupPinBoxes('pin-confirm-boxes');
@@ -1518,6 +1530,7 @@
       const data = await res.json();
 
       if (!res.ok) {
+        track('signup_failed', { reason: data.error || 'http_' + res.status });
         btn.disabled = false; btn.textContent = 'Create Account →';
         errEl.textContent = 'Something went wrong. Please start over.';
         return;
@@ -1527,6 +1540,7 @@
       if (data.sessionToken) localStorage.setItem('sp_session', data.sessionToken);
       if (data.deviceToken)  localStorage.setItem('sp_device',  data.deviceToken);
 
+      track('signup_complete', { studentCount: (regState.children || []).length });
       showRegStep('success');
 
     } catch {
