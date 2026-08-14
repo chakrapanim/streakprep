@@ -138,6 +138,16 @@
       <div class="step-icon">🔐</div>
       <div class="step-title">Enter your PIN</div>
       <p class="step-sub" id="pin-sub">Enter your 4-digit PIN to login</p>
+      <div id="l-otp-section" style="display:none">
+        <label class="form-label">WhatsApp code</label>
+        <div class="pin-row" id="l-otp-boxes">
+          <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+        </div>
+        <label class="form-label" style="margin-top:16px">PIN</label>
+      </div>
       <div class="pin-row" id="l-pin-boxes">
         <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
         <input class="pin-box" maxlength="1" inputmode="numeric" type="password" />
@@ -189,7 +199,8 @@
 </main>
 
 <script>
-  let loginPhone = '';
+  let loginPhone  = '';
+  let loginMethod = 'pin';
 
   // ── Check if already logged in ──
   (function () {
@@ -230,7 +241,7 @@
   }
 
   function goBack() {
-    document.querySelectorAll('#l-pin-boxes .pin-box').forEach(b => { b.value = ''; b.classList.remove('filled'); });
+    document.querySelectorAll('#l-pin-boxes .pin-box, #l-otp-boxes .pin-box').forEach(b => { b.value = ''; b.classList.remove('filled'); });
     document.getElementById('pin-err').textContent = '';
     showStep('step-phone');
   }
@@ -279,16 +290,20 @@
         return;
       }
 
-      loginPhone = raw;
-      const isTrusted = data.method === 'pin';
+      loginPhone  = raw;
+      loginMethod = data.method; // 'pin' (trusted device) | 'otp' (new device — code sent via WhatsApp)
+      const isTrusted = loginMethod === 'pin';
       document.getElementById('pin-sub').textContent = isTrusted
         ? 'Trusted device detected — just enter your PIN'
-        : 'Enter your 4-digit PIN to login';
+        : 'New device — enter the code we sent to your WhatsApp, then your PIN';
+      document.getElementById('l-otp-section').style.display = isTrusted ? 'none' : '';
 
       btn.disabled = false; btn.textContent = 'Continue →';
       showStep('step-pin');
       setupPinBoxes('l-pin-boxes');
-      setTimeout(() => document.querySelector('#l-pin-boxes .pin-box').focus(), 100);
+      if (!isTrusted) setupPinBoxes('l-otp-boxes');
+      const firstBox = isTrusted ? '#l-pin-boxes .pin-box' : '#l-otp-boxes .pin-box';
+      setTimeout(() => document.querySelector(firstBox).focus(), 100);
 
     } catch {
       btn.disabled = false; btn.textContent = 'Continue →';
@@ -303,26 +318,37 @@
     errEl.textContent = '';
     if (pin.length !== 4) { errEl.textContent = 'Enter all 4 digits.'; return; }
 
+    let otp = '';
+    if (loginMethod === 'otp') {
+      otp = getPinValue('l-otp-boxes');
+      if (otp.length !== 4) { errEl.textContent = 'Enter the 4-digit WhatsApp code.'; return; }
+    }
+
     const btn = document.getElementById('pin-btn');
     btn.disabled = true; btn.textContent = 'Logging in…';
 
     try {
       const deviceToken = localStorage.getItem('sp_device') || '';
+      const body = {
+        phone: loginPhone,
+        pin,
+        method: loginMethod,
+        deviceToken: deviceToken || undefined,
+        trustDevice: true,
+      };
+      if (loginMethod === 'otp') body.otp = otp;
+
       const res  = await fetch('/api/login/verify', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: loginPhone,
-          pin,
-          method: 'pin',
-          deviceToken: deviceToken || undefined,
-          trustDevice: true,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
 
       if (res.status === 401) {
         btn.disabled = false; btn.textContent = 'Login →';
-        errEl.textContent = data.error === 'pin_incorrect' ? 'Incorrect PIN. Please try again.' : 'Session expired. Please try again.';
+        errEl.textContent = data.error === 'pin_incorrect' ? 'Incorrect PIN. Please try again.'
+          : data.error === 'otp_incorrect' ? 'Incorrect WhatsApp code. Please try again.'
+          : 'Session expired. Please try again.';
         return;
       }
       if (res.status === 429) {

@@ -33,13 +33,14 @@ export async function onRequestPost({ request, env }) {
     ).bind(deviceToken, parent.id, now).first();
     if (!device) return json({ error: 'device_expired' }, 401);
   } else if (method === 'otp' && otp) {
-    // OTP path (when WhatsApp Business API is live)
+    // New/untrusted device — WhatsApp OTP + PIN required together.
     if (otp.length !== 4) return json({ error: 'otp_invalid' }, 400);
     const otpOk = await verifyOtp(db, phone, otp);
     if (!otpOk) return json({ error: 'otp_incorrect' }, 401);
   } else if (method === 'pin' && !deviceToken) {
-    // PIN-only mode — OTP disabled until WhatsApp Business API is ready
-    // Identity relies solely on knowing the correct PIN
+    // Defensive fallback for stale cached clients pre-dating the OTP-on-new-device
+    // fix — current login.html always sends method:'otp' with the code when
+    // login/init returned method:'otp'. Should rarely hit in practice.
   } else {
     return json({ error: 'method_required' }, 400);
   }
