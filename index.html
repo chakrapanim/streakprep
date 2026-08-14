@@ -1103,7 +1103,7 @@
   <div class="register-form" id="reg-otp-wrap" style="display:none">
     <div class="step-icon">📱</div>
     <div class="step-title">Enter OTP</div>
-    <p class="step-sub" id="otp-desc">We sent a 6-digit code to your WhatsApp</p>
+    <p class="step-sub" id="otp-desc">We sent a 4-digit code to your WhatsApp</p>
     <div class="pin-row" id="otp-boxes">
       <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
       <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
@@ -1425,7 +1425,7 @@
     if (!res.ok) document.getElementById('otp-error').textContent = 'Could not resend. Try again.';
   }
 
-  // ── REGISTER STEP 1: Validate → show PIN setup (OTP skipped until WhatsApp Business ready) ──
+  // ── REGISTER STEP 1: Validate → send OTP → show OTP entry ──
   async function submitReg() {
     const phone = document.getElementById('f-phone').value.trim();
     const email = document.getElementById('f-email').value.trim();
@@ -1459,9 +1459,9 @@
 
     btn.disabled = false; btn.textContent = 'Start My Free 7 Days →';
     regState = { phone, email, children };
-    showRegStep('pin');
-    setupPinBoxes('pin-boxes');
-    setupPinBoxes('pin-confirm-boxes');
+    showRegStep('otp');
+    setupPinBoxes('otp-boxes');
+    startResendTimer();
   }
 
   // ── REGISTER STEP 2: Verify OTP ──
