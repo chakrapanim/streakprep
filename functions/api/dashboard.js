@@ -62,8 +62,14 @@ function calcSubStatus(sub, now) {
     return { type: 'expired', label: 'Trial expired — subscribe to access quizzes', daysLeft: 0 };
   }
   if (sub.status === 'active') {
-    const daysLeft = Math.ceil((sub.current_period_end - now) / 86400);
-    return { type: 'active', label: `Active — renews in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`, daysLeft };
+    if (sub.current_period_end > now) {
+      const daysLeft = Math.ceil((sub.current_period_end - now) / 86400);
+      return { type: 'active', label: `Active — renews in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`, daysLeft };
+    }
+    // Period end has passed but nothing has flipped status yet (missed/late webhook) —
+    // degrade gracefully instead of showing a stale "Active — renews in -N days" label.
+    if (sub.grace_until > now) return { type: 'grace', label: 'Payment due — renew to continue', daysLeft: 0 };
+    return { type: 'expired', label: 'Subscription expired — renew to continue', daysLeft: 0 };
   }
   if (sub.status === 'grace') {
     return { type: 'grace', label: 'Subscription ended — renew to continue', daysLeft: 0 };

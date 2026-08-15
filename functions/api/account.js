@@ -13,7 +13,7 @@ export async function onRequestGet({ request, env }) {
   const [student, parent, sub, siblings] = await Promise.all([
     db.prepare('SELECT id, name, class, subjects FROM students WHERE id = ? AND is_active = 1').bind(studentId).first(),
     db.prepare('SELECT phone, email FROM parents WHERE id = ? AND is_active = 1').bind(parentId).first(),
-    db.prepare('SELECT status, trial_ends_at, current_period_end, grace_until, plan_name, amount_paise FROM subscriptions WHERE student_id = ? ORDER BY created_at DESC LIMIT 1').bind(studentId).first(),
+    db.prepare('SELECT status, trial_ends_at, current_period_end, grace_until, plan, amount_paise FROM subscriptions WHERE student_id = ? ORDER BY created_at DESC LIMIT 1').bind(studentId).first(),
     db.prepare('SELECT id, name, class FROM students WHERE parent_id = ? AND is_active = 1 ORDER BY id').bind(parentId).all(),
   ]);
 
@@ -40,8 +40,14 @@ function calcSubStatus(sub, now) {
     return { type: 'expired', label: 'Trial expired', daysLeft: 0 };
   }
   if (sub.status === 'active') {
-    const daysLeft = Math.ceil((sub.current_period_end - now) / 86400);
-    return { type: 'active', label: `Active — renews in ${daysLeft} day${daysLeft===1?'':'s'}`, daysLeft, planName: sub.plan_name, amountPaise: sub.amount_paise };
+    if (sub.current_period_end > now) {
+      const daysLeft = Math.ceil((sub.current_period_end - now) / 86400);
+      return { type: 'active', label: `Active — renews in ${daysLeft} day${daysLeft===1?'':'s'}`, daysLeft, planName: sub.plan, amountPaise: sub.amount_paise };
+    }
+    // Period end has passed but nothing has flipped status yet (missed/late webhook) —
+    // degrade gracefully instead of showing a stale "Active — renews in -N days" label.
+    if (sub.grace_until > now) return { type: 'grace', label: 'Payment due — renew to continue', daysLeft: 0 };
+    return { type: 'expired', label: 'Subscription expired — renew to continue', daysLeft: 0 };
   }
   if (sub.status === 'grace') return { type: 'grace', label: 'Subscription ended — renew to continue', daysLeft: 0 };
   return { type: 'expired', label: 'Subscription expired', daysLeft: 0 };
