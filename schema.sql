@@ -211,6 +211,19 @@ CREATE INDEX IF NOT EXISTS idx_events_anon    ON events(anon_id);
 CREATE INDEX IF NOT EXISTS idx_events_parent  ON events(parent_id);
 
 -- ─────────────────────────────────────────
+-- FLAGGED QUESTIONS (student-reported issues, reviewed by admin)
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS flagged_questions (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  question_id TEXT    NOT NULL REFERENCES questions(id),
+  student_id  INTEGER NOT NULL REFERENCES students(id),
+  reason      TEXT    NOT NULL CHECK (reason IN ('wrong_answer','bad_explanation','factual_error','unclear_question','other')),
+  note        TEXT,
+  status      TEXT    NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','deactivated','dismissed')),
+  created_at  INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+-- ─────────────────────────────────────────
 -- REMINDER LOG (dedup for the daily reminder cron)
 -- ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reminder_log (
