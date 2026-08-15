@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="/track.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Subscribe — StreakPrep</title>
@@ -81,6 +82,16 @@
       margin-top: 16px; line-height: 1.5; display: none;
     }
     .notice.show { display: block; }
+
+    .form-label { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .form-input {
+      width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border); border-radius: 10px; color: var(--text);
+      font-size: 0.9rem; font-family: inherit; margin-bottom: 8px; text-transform: uppercase;
+    }
+    .form-input:focus { outline: none; border-color: var(--orange); }
+    .coupon-err { font-size: 0.78rem; color: #EF4444; min-height: 16px; margin-bottom: 8px; }
+    .coupon-ok  { font-size: 0.78rem; color: var(--green); min-height: 16px; margin-bottom: 8px; }
 
     .err-msg { font-size: 0.85rem; color: #EF4444; text-align: center; padding: 20px 0; }
   </style>
@@ -164,20 +175,86 @@
       <p class="step-sub">Class ${student.class} · ${student.subjectCount} subject${student.subjectCount === 1 ? '' : 's'}</p>
       <div class="plan-summary">
         <div class="plan-name">${planLabel(student.plan)}</div>
-        <div class="plan-price">₹${(student.amountPaise / 100).toFixed(0)}<span style="font-size:0.9rem;color:var(--muted);font-weight:600;">/month</span></div>
+        <div class="plan-price" id="plan-price">₹${(student.amountPaise / 100).toFixed(0)}<span style="font-size:0.9rem;color:var(--muted);font-weight:600;">/month</span></div>
         <div class="plan-status">${student.subscription.label}</div>
       </div>
+      <label class="form-label">Coupon code (optional)</label>
+      <input type="text" class="form-input" id="coupon-input" placeholder="e.g. LAUNCH50" />
+      <div class="coupon-err" id="coupon-err"></div>
       <button class="btn-primary" id="pay-btn" onclick="startPayment(${student.id})">Continue to Payment →</button>
       ${showBack ? `<button class="btn-back" onclick="renderPicker()">← Choose a different student</button>` : ''}
-      <p class="notice" id="pay-notice">Online payments are being set up right now — we'll message you on WhatsApp the moment it's ready. Thanks for your patience! In the meantime, your free trial (and streak) keeps going.</p>
+      <p class="notice" id="pay-notice"></p>
     `;
   }
 
-  function startPayment(studentId) {
-    track('pay_continue_clicked', { studentId, placeholder: true });
-    const btn = document.getElementById('pay-btn');
-    btn.disabled = true;
-    document.getElementById('pay-notice').classList.add('show');
+  async function startPayment(studentId) {
+    const btn       = document.getElementById('pay-btn');
+    const couponErr = document.getElementById('coupon-err');
+    const notice    = document.getElementById('pay-notice');
+    const couponCode = document.getElementById('coupon-input').value.trim();
+    couponErr.textContent = '';
+    btn.disabled = true; btn.textContent = 'Please wait…';
+
+    track('pay_continue_clicked', { studentId, couponEntered: !!couponCode });
+
+    const session = localStorage.getItem('sp_session');
+    let res, data;
+    try {
+      res = await fetch('/api/pay/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session },
+        body: JSON.stringify({ studentId, couponCode: couponCode || undefined }),
+      });
+      data = await res.json().catch(() => ({}));
+    } catch {
+      btn.disabled = false; btn.textContent = 'Continue to Payment →';
+      couponErr.textContent = 'Network error. Please try again.';
+      return;
+    }
+
+    if (res.status === 503 || data.error === 'not_configured') {
+      // Razorpay isn't wired up yet (no live keys) — honest placeholder, not a broken error.
+      track('pay_not_configured', { studentId });
+      notice.textContent = "Online payments are being set up right now — we'll message you on WhatsApp the moment it's ready. Thanks for your patience! In the meantime, your free trial (and streak) keeps going.";
+      notice.classList.add('show');
+      return;
+    }
+    if (data.error === 'invalid_coupon') {
+      btn.disabled = false; btn.textContent = 'Continue to Payment →';
+      couponErr.textContent = 'That coupon code is invalid or expired.';
+      return;
+    }
+    if (!res.ok) {
+      btn.disabled = false; btn.textContent = 'Continue to Payment →';
+      couponErr.textContent = 'Something went wrong. Please try again.';
+      return;
+    }
+
+    // Razorpay Checkout — embedded modal, no page redirect.
+    const rzp = new Razorpay({
+      key: data.keyId,
+      subscription_id: data.subscriptionId,
+      name: 'StreakPrep',
+      description: planLabel(data.planName) + ' subscription',
+      theme: { color: '#FF6B35' },
+      handler: function () {
+        track('pay_checkout_success', { studentId });
+        notice.textContent = "Payment received! We'll confirm your subscription shortly — refresh your dashboard in a moment.";
+        notice.classList.add('show');
+      },
+      modal: {
+        ondismiss: function () {
+          track('pay_checkout_dismissed', { studentId });
+          btn.disabled = false; btn.textContent = 'Continue to Payment →';
+        },
+      },
+    });
+    rzp.on('payment.failed', function () {
+      track('pay_checkout_failed', { studentId });
+      btn.disabled = false; btn.textContent = 'Continue to Payment →';
+      couponErr.textContent = 'Payment failed. Please try again.';
+    });
+    rzp.open();
   }
 
   function planLabel(plan) {
