@@ -1086,6 +1086,12 @@
         <input type="email" id="f-email" class="form-input" placeholder="for login link" />
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Referral code (optional)</label>
+        <input type="text" id="f-referral" class="form-input" placeholder="e.g. RIYA2026" style="text-transform:uppercase" />
+      </div>
+    </div>
 
     <hr class="children-divider" />
 
@@ -1150,8 +1156,13 @@
     <div class="success-emoji">🎉</div>
     <h3>You're in!</h3>
     <p>We'll send your first quiz link to your WhatsApp shortly.<br/>Your 7-day free trial starts today. Don't break the streak!</p>
+    <div id="referral-box" style="display:none;margin:18px auto 0;max-width:320px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.3);border-radius:12px;padding:14px;">
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;">Your referral code</div>
+      <div id="referral-code-text" style="font-size:1.2rem;font-weight:900;letter-spacing:0.05em;color:var(--orange);"></div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">Share it — when a friend subscribes, you both get a free month</div>
+    </div>
     <br/>
-    <a href="https://wa.me/?text=I%20just%20registered%20for%20StreakPrep%20%E2%80%94%20daily%20NCERT%20quiz%20for%20CBSE%20students.%20First%20week%20free%21%20Check%20it%20out%3A%20https%3A%2F%2Fstreakprep.ai" target="_blank" class="btn-primary" style="display:inline-block;margin-top:8px;">Share on WhatsApp →</a>
+    <a id="share-whatsapp-link" href="https://wa.me/?text=I%20just%20registered%20for%20StreakPrep%20%E2%80%94%20daily%20NCERT%20quiz%20for%20CBSE%20students.%20First%20week%20free%21%20Check%20it%20out%3A%20https%3A%2F%2Fstreakprep.ai" target="_blank" class="btn-primary" style="display:inline-block;margin-top:8px;">Share on WhatsApp →</a>
   </div>
 </section>
 
@@ -1177,6 +1188,13 @@
 
   // Initialise first child block with all subjects pre-selected
   document.addEventListener('DOMContentLoaded', () => addChild(true));
+
+  // Prefill a referral code from a shared link (?ref=CODE), if present.
+  document.addEventListener('DOMContentLoaded', () => {
+    const ref = new URLSearchParams(location.search).get('ref');
+    const el  = document.getElementById('f-referral');
+    if (ref && el) el.value = ref.toUpperCase();
+  });
 
   // ── FAQ ──
   function toggleFaq(item) {
@@ -1434,8 +1452,9 @@
 
   // ── REGISTER STEP 1: Validate → send OTP → show OTP entry ──
   async function submitReg() {
-    const phone = document.getElementById('f-phone').value.trim();
-    const email = document.getElementById('f-email').value.trim();
+    const phone    = document.getElementById('f-phone').value.trim();
+    const email    = document.getElementById('f-email').value.trim();
+    const referral = document.getElementById('f-referral').value.trim().toUpperCase();
     if (!phone) { shake('f-phone'); return; }
 
     const children = [];
@@ -1469,7 +1488,7 @@
 
     track('signup_otp_sent');
     btn.disabled = false; btn.textContent = 'Start My Free 7 Days →';
-    regState = { phone, email, children };
+    regState = { phone, email, referral, children };
     showRegStep('otp');
     setupPinBoxes('otp-boxes');
     startResendTimer();
@@ -1540,6 +1559,13 @@
       // Persist tokens in localStorage
       if (data.sessionToken) localStorage.setItem('sp_session', data.sessionToken);
       if (data.deviceToken)  localStorage.setItem('sp_device',  data.deviceToken);
+
+      if (data.referralCode) {
+        document.getElementById('referral-code-text').textContent = data.referralCode;
+        document.getElementById('referral-box').style.display = 'block';
+        const msg = `I just registered for StreakPrep — daily NCERT quiz for CBSE students. First week free! Use my code ${data.referralCode} for a bonus when you subscribe: https://streakprep.ai?ref=${data.referralCode}`;
+        document.getElementById('share-whatsapp-link').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+      }
 
       track('signup_complete', { studentCount: (regState.children || []).length });
       showRegStep('success');

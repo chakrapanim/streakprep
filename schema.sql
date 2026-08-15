@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   grace_until             INTEGER,           -- 24h after period_end before blocking
   razorpay_subscription_id TEXT,
   razorpay_payment_id     TEXT,
+  coupon_code             TEXT,              -- audit trail only; redemption count lives on coupons row
   cancelled_at            INTEGER,
   created_at              INTEGER NOT NULL DEFAULT (unixepoch()),
   updated_at              INTEGER NOT NULL DEFAULT (unixepoch())
@@ -59,6 +60,31 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 CREATE INDEX IF NOT EXISTS idx_subs_student   ON subscriptions(student_id);
 CREATE INDEX IF NOT EXISTS idx_subs_status    ON subscriptions(status);
 CREATE INDEX IF NOT EXISTS idx_subs_trial_end ON subscriptions(trial_ends_at);
+
+-- ─────────────────────────────────────────
+-- SETTINGS (key/value config, e.g. otp_max_per_hour, renewal_grace_days)
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+-- ─────────────────────────────────────────
+-- COUPONS (first-billing-cycle discount, applied at subscribe-time)
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS coupons (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  code            TEXT    NOT NULL UNIQUE,
+  discount_type   TEXT    NOT NULL CHECK (discount_type IN ('percent','flat')),
+  discount_value  INTEGER NOT NULL,   -- percent: 0-100; flat: paise
+  max_redemptions INTEGER,            -- NULL = unlimited
+  times_redeemed  INTEGER NOT NULL DEFAULT 0,
+  expires_at      INTEGER,            -- NULL = never expires
+  is_active       INTEGER NOT NULL DEFAULT 1,
+  created_at      INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);
 
 -- ─────────────────────────────────────────
 -- OTP REQUESTS (WhatsApp login)

@@ -12,6 +12,7 @@ export async function onRequestPost({ request, env }) {
   const email    = (body.email || '').trim() || null;
   const pin      = (body.pin   || '').trim();
   const children = Array.isArray(body.children) ? body.children : [];
+  const referral = (body.referral || '').trim().toUpperCase() || null;
 
   // Validate
   if (!phone)           return json({ error: 'phone_required' }, 400);
@@ -74,14 +75,34 @@ export async function onRequestPost({ request, env }) {
     ).bind(studentId, now).run();
   }
 
-  // Referral code
+  // Referral code — this parent's own code, to share with others.
   const firstName = children[0].name.trim();
+  let myReferralCode = null;
   for (let i = 0; i < 5; i++) {
+    const candidate = referralCode(firstName, i);
     try {
       await db.prepare('INSERT INTO referral_codes (parent_id, code, created_at) VALUES (?, ?, ?)')
-        .bind(parentId, referralCode(firstName, i), now).run();
+        .bind(parentId, candidate, now).run();
+      myReferralCode = candidate;
       break;
-    } catch { /* collision */ }
+    } catch { /* collision, try next */ }
+  }
+
+  // If they entered someone else's referral code, record it. Reward is NOT
+  // credited here — that happens on the referred student's first successful
+  // payment (in the Razorpay webhook handler), so a signup that never
+  // converts to paid can't be farmed for free rewards.
+  if (referral) {
+    const referrer = await db.prepare(
+      'SELECT parent_id FROM referral_codes WHERE code = ?'
+    ).bind(referral).first();
+    if (referrer && referrer.parent_id !== parentId) {
+      try {
+        await db.prepare(
+          'INSERT INTO referrals (referrer_parent_id, referred_parent_id, reward_given, created_at) VALUES (?, ?, 0, ?)'
+        ).bind(referrer.parent_id, parentId, now).run();
+      } catch { /* referred_parent_id already used (shouldn't happen for a brand-new parent) */ }
+    }
   }
 
   // Create session
@@ -103,7 +124,7 @@ export async function onRequestPost({ request, env }) {
     'INSERT INTO trusted_devices (parent_id, token, user_agent, expires_at, created_at) VALUES (?, ?, ?, ?, ?)'
   ).bind(parentId, deviceToken, userAgent, deviceExpiry, now).run();
 
-  return json({ ok: true, sessionToken, deviceToken, parentId, studentIds });
+  return json({ ok: true, sessionToken, deviceToken, parentId, studentIds, referralCode: myReferralCode });
 }
 
 function planFor(n) {
