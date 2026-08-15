@@ -1,5 +1,6 @@
 import { json } from '../../_lib/db.js';
 import { verifyWebhookSignature } from '../../_lib/razorpay.js';
+import { sendWhatsAppTemplate } from '../../_lib/whatsapp.js';
 
 // Razorpay webhook — the source of truth for subscription lifecycle. The
 // dashboard/account/quiz live-checks (current_period_end > now) already
@@ -40,9 +41,14 @@ export async function onRequestPost({ request, env }) {
   const rzpSubId = rzpSub?.id;
   if (!rzpSubId) return json({ ok: true, ignored: 'no_subscription_in_payload' });
 
-  const sub = await db.prepare(
-    'SELECT id, student_id, status FROM subscriptions WHERE razorpay_subscription_id = ? ORDER BY created_at DESC LIMIT 1'
-  ).bind(rzpSubId).first();
+  const sub = await db.prepare(`
+    SELECT s.id, s.student_id, s.status, s.amount_paise, st.name as student_name, p.phone
+    FROM subscriptions s
+    JOIN students st ON st.id = s.student_id
+    JOIN parents  p  ON p.id  = st.parent_id
+    WHERE s.razorpay_subscription_id = ?
+    ORDER BY s.created_at DESC LIMIT 1
+  `).bind(rzpSubId).first();
   if (!sub) return json({ ok: true, ignored: 'subscription_not_found' });
 
   const wasFirstCharge = sub.status === 'pending';
@@ -60,11 +66,23 @@ export async function onRequestPost({ request, env }) {
     if (wasFirstCharge) {
       await creditReferralRewardIfAny(db, sub.student_id, now);
     }
+
+    // Best-effort receipt — a WhatsApp send failure shouldn't roll back the
+    // subscription state change above, so this is intentionally swallowed.
+    if (env.MSG91_WA_RECEIPT_TEMPLATE) {
+      const rupees = (sub.amount_paise / 100).toFixed(0);
+      const renewsOn = new Date(periodEnd * 1000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+      sendWhatsAppTemplate(env, sub.phone, env.MSG91_WA_RECEIPT_TEMPLATE, [sub.student_name, rupees, renewsOn]).catch(() => {});
+    }
   } else if (eventType === 'subscription.pending') {
     const graceDays = parseInt((await db.prepare('SELECT value FROM settings WHERE key = ?').bind('renewal_grace_days').first())?.value ?? 3);
     await db.prepare(`
       UPDATE subscriptions SET status = 'grace', grace_until = ?, updated_at = ? WHERE id = ?
     `).bind(now + graceDays * 86400, now, sub.id).run();
+
+    if (env.MSG91_WA_PAYMENT_FAILED_TEMPLATE) {
+      sendWhatsAppTemplate(env, sub.phone, env.MSG91_WA_PAYMENT_FAILED_TEMPLATE, [sub.student_name, String(graceDays)]).catch(() => {});
+    }
   } else if (eventType === 'subscription.halted') {
     await db.prepare(`UPDATE subscriptions SET status = 'expired', updated_at = ? WHERE id = ?`).bind(now, sub.id).run();
   } else if (eventType === 'subscription.cancelled') {

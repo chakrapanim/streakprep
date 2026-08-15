@@ -211,6 +211,17 @@ CREATE INDEX IF NOT EXISTS idx_events_anon    ON events(anon_id);
 CREATE INDEX IF NOT EXISTS idx_events_parent  ON events(parent_id);
 
 -- ─────────────────────────────────────────
+-- REMINDER LOG (dedup for the daily reminder cron)
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS reminder_log (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  subscription_id INTEGER NOT NULL REFERENCES subscriptions(id),
+  reminder_type   TEXT    NOT NULL,
+  sent_at         INTEGER NOT NULL DEFAULT (unixepoch()),
+  UNIQUE (subscription_id, reminder_type)
+);
+
+-- ─────────────────────────────────────────
 -- PAYMENT EVENTS (immutable ledger)
 -- Every Razorpay webhook lands here before touching subscriptions
 -- ─────────────────────────────────────────

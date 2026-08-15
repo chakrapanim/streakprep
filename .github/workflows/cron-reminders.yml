@@ -1,0 +1,16 @@
+name: Daily reminder cron
+
+on:
+  schedule:
+    # 09:00 IST = 03:30 UTC
+    - cron: '30 3 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  trigger-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call reminders endpoint
+        run: |
+          curl -sS -w '\nHTTP %{http_code}\n' -f -X POST https://streakprep.ai/api/cron/reminders \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
