@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/track.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subscribe — StreakPrep</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --dark:   #0B0F1A;
+      --card:   #111827;
+      --border: #1E2A3B;
+      --text:   #F0F4FF;
+      --muted:  #6B7FA3;
+      --orange: #FF6B35;
+      --orange-glow: rgba(255,107,53,0.35);
+      --green:  #22C55E;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100vh; background: var(--dark); color: var(--text);
+      font-family: 'Inter', sans-serif; display: flex; flex-direction: column;
+    }
+    nav {
+      padding: 16px 24px; display: flex; align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-size: 1.15rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .logo span { color: var(--orange); }
+    main {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+    }
+    .card {
+      width: 100%; max-width: 460px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 32px;
+    }
+    .step-icon  { font-size: 2rem; margin-bottom: 10px; }
+    .step-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
+    .step-sub   { font-size: 0.83rem; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+
+    .student-option {
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      background: rgba(255,255,255,0.03); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+      font-family: inherit; color: var(--text); transition: border-color 0.15s;
+    }
+    .student-option:hover { border-color: var(--orange); }
+    .student-option .name  { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+    .student-option .meta  { font-size: 0.8rem; color: var(--muted); }
+    .student-option .plan  { font-size: 0.8rem; color: var(--orange); font-weight: 600; margin-top: 6px; }
+
+    .plan-summary {
+      background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 14px; padding: 20px; margin-bottom: 20px; text-align: center;
+    }
+    .plan-summary .plan-name  { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+    .plan-summary .plan-price { font-size: 1.6rem; font-weight: 900; color: var(--orange); }
+    .plan-summary .plan-status{ font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+
+    .btn-primary {
+      width: 100%; padding: 14px; background: var(--orange); color: white;
+      border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; margin-top: 8px;
+      box-shadow: 0 8px 30px rgba(255,107,53,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(255,107,53,0.4); }
+    .btn-back {
+      background: none; border: none; color: var(--muted); font-size: 0.82rem;
+      cursor: pointer; font-family: inherit; margin-top: 16px; display: block;
+      width: 100%; text-align: center;
+    }
+    .btn-back:hover { color: var(--text); }
+
+    .notice {
+      font-size: 0.85rem; color: var(--muted); text-align: center;
+      margin-top: 16px; line-height: 1.5; display: none;
+    }
+    .notice.show { display: block; }
+
+    .err-msg { font-size: 0.85rem; color: #EF4444; text-align: center; padding: 20px 0; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/dashboard" class="logo">Streak<span>Prep</span></a>
+</nav>
+<main>
+  <div class="card" id="card">
+    <div class="step-icon">⏳</div>
+    <p class="step-sub">Loading…</p>
+  </div>
+</main>
+
+<script>
+  let students   = [];
+  let selectedId = null;
+
+  async function init() {
+    const session = localStorage.getItem('sp_session');
+    if (!session) { window.location.href = '/login'; return; }
+
+    track('pay_view');
+
+    let data, res;
+    try {
+      res = await fetch('/api/pay/students', { headers: { Authorization: 'Bearer ' + session } });
+    } catch {
+      renderError('Network error. Please try again.');
+      return;
+    }
+    if (res.status === 401) { localStorage.removeItem('sp_session'); window.location.href = '/login'; return; }
+    if (!res.ok) { renderError('Could not load your account. Please try again.'); return; }
+    data = await res.json();
+    students = data.students || [];
+
+    if (!students.length) { renderError('No student profiles found on this account.'); return; }
+
+    if (students.length === 1) {
+      selectedId = students[0].id;
+      renderPlanStep(students[0]);
+    } else {
+      renderPicker();
+    }
+  }
+
+  function renderError(msg) {
+    document.getElementById('card').innerHTML = `<div class="err-msg">${msg}</div>`;
+  }
+
+  function renderPicker() {
+    track('pay_picker_shown', { studentCount: students.length });
+    const optionsHtml = students.map(s => `
+      <button class="student-option" onclick="selectStudent(${s.id})">
+        <div class="name">${escapeHtml(s.name)}</div>
+        <div class="meta">Class ${s.class} · ${s.subjectCount} subject${s.subjectCount === 1 ? '' : 's'}</div>
+        <div class="plan">${planLabel(s.plan)} — ₹${(s.amountPaise / 100).toFixed(0)}/mo · ${s.subscription.label}</div>
+      </button>
+    `).join('');
+
+    document.getElementById('card').innerHTML = `
+      <div class="step-icon">👨‍👩‍👧‍👦</div>
+      <div class="step-title">Which student is this for?</div>
+      <p class="step-sub">You have more than one child registered — each has their own subscription.</p>
+      ${optionsHtml}
+    `;
+  }
+
+  function selectStudent(id) {
+    const student = students.find(s => s.id === id);
+    selectedId = id;
+    track('pay_student_picked', { studentId: id });
+    renderPlanStep(student, students.length > 1);
+  }
+
+  function renderPlanStep(student, showBack) {
+    document.getElementById('card').innerHTML = `
+      <div class="step-icon">💳</div>
+      <div class="step-title">Subscribe for ${escapeHtml(student.name)}</div>
+      <p class="step-sub">Class ${student.class} · ${student.subjectCount} subject${student.subjectCount === 1 ? '' : 's'}</p>
+      <div class="plan-summary">
+        <div class="plan-name">${planLabel(student.plan)}</div>
+        <div class="plan-price">₹${(student.amountPaise / 100).toFixed(0)}<span style="font-size:0.9rem;color:var(--muted);font-weight:600;">/month</span></div>
+        <div class="plan-status">${student.subscription.label}</div>
+      </div>
+      <button class="btn-primary" id="pay-btn" onclick="startPayment(${student.id})">Continue to Payment →</button>
+      ${showBack ? `<button class="btn-back" onclick="renderPicker()">← Choose a different student</button>` : ''}
+      <p class="notice" id="pay-notice">Online payments are being set up right now — we'll message you on WhatsApp the moment it's ready. Thanks for your patience! In the meantime, your free trial (and streak) keeps going.</p>
+    `;
+  }
+
+  function startPayment(studentId) {
+    track('pay_continue_clicked', { studentId, placeholder: true });
+    const btn = document.getElementById('pay-btn');
+    btn.disabled = true;
+    document.getElementById('pay-notice').classList.add('show');
+  }
+
+  function planLabel(plan) {
+    return plan === 'starter' ? 'Starter — 1 Subject'
+         : plan === 'core'    ? 'Core — 3 Subjects'
+         : 'Full Prep — 5 Subjects';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  init();
+</script>
+</body>
+</html>
