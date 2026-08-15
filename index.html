@@ -1423,6 +1423,7 @@
   async function resendRegOtp(e) {
     e.preventDefault();
     document.getElementById('resend-link').style.display = 'none';
+    document.getElementById('otp-error').textContent = '';
     const res = await fetch('/api/register/init', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone: regState.phone }),
