@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiz — StreakPrep</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -20,7 +21,8 @@
 
     /* ── Nav ── */
     nav { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-    .logo { font-size: 1.1rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .logo { font-size: 1.1rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 8px; }
+    .logo-icon { width: 24px; height: 24px; }
     .logo span { color: var(--orange); }
     .nav-back { font-size: 0.82rem; color: var(--muted); text-decoration: none; font-weight: 500; transition: color 0.15s; }
     .nav-back:hover { color: var(--text); }
@@ -270,7 +272,7 @@
 <body>
 
 <nav>
-  <a href="/" class="logo">Streak<span>Prep</span></a>
+  <a href="/" class="logo"><img src="/logo.svg" alt="" class="logo-icon" />Streak<span>Prep</span></a>
   <a href="/dashboard" class="nav-back">← Dashboard</a>
 </nav>
 

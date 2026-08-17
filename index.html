@@ -18,6 +18,7 @@
   <meta name="description" content="Small Streaks. Big Leaps. 5 NCERT questions a day for CBSE students. Classes 6–10. First week free." />
   <meta name="theme-color" content="#FF6B35" />
   <link rel="canonical" href="https://streakprep.ai/" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://streakprep.ai/" />
   <meta property="og:title" content="StreakPrep — Small Streaks. Big Leaps." />
@@ -102,7 +103,10 @@
     .logo {
       font-size: 1.35rem; font-weight: 900;
       color: var(--white); text-decoration: none; letter-spacing: -0.02em;
+      display: inline-flex; align-items: center; gap: 8px;
     }
+    .logo-icon { width: 28px; height: 28px; flex-shrink: 0; }
+    .logo-text { display: inline-block; }
     .logo span { color: var(--orange); }
     .logo-tagline {
       font-size: 0.62rem; font-weight: 600; letter-spacing: 0.06em;
@@ -702,7 +706,7 @@
 <!-- NAV -->
 <nav>
   <div class="nav-inner">
-    <a href="#" class="logo">Streak<span>Prep</span><em class="logo-tagline">Small Streaks. Big Leaps.</em></a>
+    <a href="#" class="logo"><img src="/logo.svg" alt="" class="logo-icon" /><span class="logo-text">Streak<span>Prep</span><em class="logo-tagline">Small Streaks. Big Leaps.</em></span></a>
     <div class="nav-links">
       <a href="#how-it-works">How It Works</a>
       <a href="#pricing">Pricing</a>

@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login — StreakPrep</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -36,9 +37,11 @@
       padding: 16px 24px; display: flex; align-items: center;
       border-bottom: 1px solid var(--border); position: relative; z-index: 10;
     }
-    .logo { font-size: 1.15rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .logo { font-size: 1.15rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 8px; }
     .logo span { color: var(--orange); }
     .logo em { display: block; font-style: normal; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 1px; }
+    .logo-icon { width: 26px; height: 26px; flex-shrink: 0; }
+    .logo-text { display: inline-block; }
 
     /* ── Main ── */
     main {
@@ -116,7 +119,7 @@
 <div class="bg-orb bg-orb-2"></div>
 
 <nav>
-  <a href="/" class="logo">Streak<span>Prep</span><em>Small Streaks. Big Leaps.</em></a>
+  <a href="/" class="logo"><img src="/logo.svg" alt="" class="logo-icon" /><span class="logo-text">Streak<span>Prep</span><em>Small Streaks. Big Leaps.</em></span></a>
 </nav>
 
 <main>

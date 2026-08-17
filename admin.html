@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — StreakPrep</title>
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -17,7 +18,8 @@
     html, body { min-height: 100vh; background: var(--dark); color: var(--text); font-family: 'Inter', sans-serif; }
 
     nav { padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-    .logo { font-size: 1.1rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .logo { font-size: 1.1rem; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 8px; }
+    .logo-icon { width: 24px; height: 24px; }
     .logo span { color: var(--orange); }
     .admin-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: rgba(255,107,53,0.15); color: var(--orange); border: 1px solid rgba(255,107,53,0.3); }
     .nav-right { display: flex; align-items: center; gap: 12px; }
@@ -133,7 +135,7 @@
 <body>
 
 <nav>
-  <a href="/" class="logo">Streak<span>Prep</span></a>
+  <a href="/" class="logo"><img src="/logo.svg" alt="" class="logo-icon" />Streak<span>Prep</span></a>
   <div class="nav-right">
     <span class="admin-badge">Admin</span>
     <button class="btn-nav" onclick="logout()">Log out</button>
