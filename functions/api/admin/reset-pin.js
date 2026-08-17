@@ -6,7 +6,7 @@ import { hashPin, randomHex, randomOtp } from '../../_lib/crypto.js';
 // If newPin is supplied it's used; otherwise a random 4-digit temp PIN is generated
 // and returned in the response for the admin to relay to the user.
 export async function onRequestPost({ request, env }) {
-  const auth = checkAdminAuth(request, env);
+  const auth = await checkAdminAuth(request, env);
   if (!auth.ok) return adminUnauth(auth.error);
 
   const db = env.streakprep_db;

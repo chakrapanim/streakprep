@@ -8,10 +8,11 @@ import { json } from '../../_lib/db.js';
 // `x-webhook-secret: <MSG91_WEBHOOK_SECRET>` matching the Cloudflare Pages secret below.
 // Must respond fast — MSG91 times out and retries after a few seconds.
 export async function onRequestPost({ request, env }) {
-  if (env.MSG91_WEBHOOK_SECRET) {
-    const provided = request.headers.get('x-webhook-secret');
-    if (provided !== env.MSG91_WEBHOOK_SECRET) return json({ error: 'unauthorized' }, 401);
-  }
+  // Mandatory, not optional — an unset secret must fail closed, not open the webhook
+  // to unauthenticated writes into otp_requests.
+  if (!env.MSG91_WEBHOOK_SECRET) return json({ error: 'webhook_not_configured' }, 503);
+  const provided = request.headers.get('x-webhook-secret');
+  if (provided !== env.MSG91_WEBHOOK_SECRET) return json({ error: 'unauthorized' }, 401);
 
   let body;
   try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }

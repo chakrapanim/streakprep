@@ -1,13 +1,22 @@
 import { getSetting } from './db.js';
 import { randomOtp, hashOtp } from './crypto.js';
+import { checkIpRateLimit } from './rate-limit.js';
 
-export async function checkRateLimit(db, phone) {
+export async function checkRateLimit(db, phone, ip) {
   // Lenient by design: students legitimately log in several times a day. PIN / trusted-device
   // logins don't send an OTP and never reach here — this only throttles OTP sends.
   const maxPerHour      = parseInt(await getSetting(db, 'otp_max_per_hour', '20'));
   const cooldownSeconds = parseInt(await getSetting(db, 'otp_cooldown_seconds', '30'));
   const now             = Math.floor(Date.now() / 1000);
   const hourAgo         = now - 3600;
+
+  // Per-IP cap (independent of phone) — stops one source from rotating through many
+  // numbers to spam-send OTPs (harassment + WhatsApp/SMS spend), which the per-phone
+  // limit below can't catch on its own.
+  if (ip) {
+    const ipOk = await checkIpRateLimit(db, 'otp_send', ip, 10, 3600);
+    if (!ipOk) return { allowed: false, reason: 'rate_limit', retryAfter: 3600 };
+  }
 
   const [recent, lastRequest] = await Promise.all([
     db.prepare('SELECT COUNT(*) as n, MIN(created_at) as oldest FROM otp_requests WHERE phone = ? AND created_at > ?')

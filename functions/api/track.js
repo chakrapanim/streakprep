@@ -1,11 +1,17 @@
 import { json } from '../_lib/db.js';
 import { getSession } from '../_lib/auth.js';
+import { checkIpRateLimit, clientIp } from '../_lib/rate-limit.js';
 
 // Fire-and-forget click-stream telemetry ingestion. Always returns 200 so a
 // bad/late beacon never surfaces as an error to the client — track() calls
 // are best-effort and must never affect the actual user-facing flow.
 export async function onRequestPost({ request, env }) {
   const db = env.streakprep_db;
+
+  // Unauthenticated write endpoint — cap per-IP so a scripted flood can't bloat the
+  // table or burn write quota. Generous enough for real multi-tab/multi-child usage.
+  const ok = await checkIpRateLimit(db, 'track', clientIp(request), 300, 3600).catch(() => true);
+  if (!ok) return json({ ok: true });
 
   let body;
   try { body = await request.json(); } catch { return json({ ok: true }); }

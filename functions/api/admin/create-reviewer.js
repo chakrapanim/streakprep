@@ -3,7 +3,7 @@ import { json, normalisePhone } from '../../_lib/db.js';
 import { hashPin, randomHex } from '../../_lib/crypto.js';
 
 export async function onRequestPost({ request, env }) {
-  const auth = checkAdminAuth(request, env);
+  const auth = await checkAdminAuth(request, env);
   if (!auth.ok) return adminUnauth(auth.error);
 
   let body;

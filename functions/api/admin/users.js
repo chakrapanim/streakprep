@@ -2,7 +2,7 @@ import { checkAdminAuth, adminUnauth } from '../../_lib/admin-auth.js';
 import { json } from '../../_lib/db.js';
 
 export async function onRequestGet({ request, env }) {
-  const auth = checkAdminAuth(request, env);
+  const auth = await checkAdminAuth(request, env);
   if (!auth.ok) return adminUnauth(auth.error);
 
   const db  = env.streakprep_db;

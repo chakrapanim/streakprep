@@ -16,7 +16,7 @@ export async function onRequestPost({ request, env }) {
 
   if (!phone)                    return json({ error: 'phone_required' }, 400);
   if (!/^\d{4}$/.test(newPin))   return json({ error: 'invalid_pin_format' }, 400);
-  if (!/^\d{4}$/.test(otp))      return json({ error: 'otp_invalid' }, 400);
+  if (!/^\d{6}$/.test(otp))      return json({ error: 'otp_invalid' }, 400);
 
   const parent = await db.prepare(
     'SELECT id FROM parents WHERE phone = ? AND is_active = 1'

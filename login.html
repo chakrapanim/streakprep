@@ -110,7 +110,8 @@
 
     @media (max-width: 480px) {
       .login-card { padding: 28px 20px; }
-      .pin-box { width: 48px; height: 56px; font-size: 1.3rem; }
+      .pin-row { gap: 6px; }
+      .pin-box { width: 40px; height: 50px; font-size: 1.2rem; }
     }
   </style>
 </head>
@@ -149,6 +150,8 @@
           <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
           <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
           <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+          <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
         </div>
         <label class="form-label" style="margin-top:16px">PIN</label>
       </div>
@@ -172,6 +175,8 @@
 
       <label class="form-label">Verification code</label>
       <div class="pin-row" id="r-otp-boxes">
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+        <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
         <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
         <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
         <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
@@ -329,7 +334,7 @@
     let otp = '';
     if (loginMethod === 'otp') {
       otp = getPinValue('l-otp-boxes');
-      if (otp.length !== 4) { errEl.textContent = 'Enter the 4-digit WhatsApp code.'; return; }
+      if (otp.length !== 6) { errEl.textContent = 'Enter the 6-digit WhatsApp code.'; return; }
     }
 
     const btn = document.getElementById('pin-btn');
@@ -458,7 +463,7 @@
     const errEl  = document.getElementById('reset-err');
     errEl.style.color = '#EF4444';
     errEl.textContent = '';
-    if (otp.length !== 4)    { errEl.textContent = 'Enter the 4-digit code.'; return; }
+    if (otp.length !== 6)    { errEl.textContent = 'Enter the 6-digit code.'; return; }
     if (newPin.length !== 4) { errEl.textContent = 'Choose a 4-digit PIN.'; return; }
 
     const btn = document.getElementById('reset-btn');

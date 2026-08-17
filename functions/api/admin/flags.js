@@ -4,7 +4,7 @@ import { json } from '../../_lib/db.js';
 // GET  /api/admin/flags?status=pending   list flagged questions
 // PATCH /api/admin/flags                 body: { flagId, action: 'deactivate'|'dismiss' }
 export async function onRequestGet({ request, env }) {
-  const auth = checkAdminAuth(request, env);
+  const auth = await checkAdminAuth(request, env);
   if (!auth.ok) return adminUnauth(auth.error);
 
   const db     = env.streakprep_db;
@@ -29,7 +29,7 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPatch({ request, env }) {
-  const auth = checkAdminAuth(request, env);
+  const auth = await checkAdminAuth(request, env);
   if (!auth.ok) return adminUnauth(auth.error);
 
   const db = env.streakprep_db;

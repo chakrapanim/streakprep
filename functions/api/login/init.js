@@ -1,5 +1,6 @@
 import { normalisePhone, json } from '../../_lib/db.js';
 import { checkRateLimit, createAndSendOtp } from '../../_lib/otp.js';
+import { clientIp } from '../../_lib/rate-limit.js';
 
 export async function onRequestPost({ request, env }) {
   const db = env.streakprep_db;
@@ -37,7 +38,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   // Not trusted — send OTP
-  const limit = await checkRateLimit(db, phone);
+  const limit = await checkRateLimit(db, phone, clientIp(request));
   if (!limit.allowed) return json({ error: limit.reason, retryAfter: limit.retryAfter }, 429);
 
   const { otp, channel } = await createAndSendOtp(db, phone, env);

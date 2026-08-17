@@ -3,7 +3,7 @@ import { json } from '../../_lib/db.js';
 
 // DELETE /api/admin/delete-user   body: { studentId }
 export async function onRequestDelete({ request, env }) {
-  const auth = checkAdminAuth(request, env);
+  const auth = await checkAdminAuth(request, env);
   if (!auth.ok) return adminUnauth(auth.error);
 
   let body;

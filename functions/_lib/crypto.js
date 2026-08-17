@@ -27,7 +27,14 @@ export function randomHex(bytes = 32) {
 }
 
 export function randomOtp() {
-  return String(1000 + crypto.getRandomValues(new Uint32Array(1))[0] % 9000);
+  return String(100000 + crypto.getRandomValues(new Uint32Array(1))[0] % 900000);
+}
+
+export function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
 function hex(arr) {

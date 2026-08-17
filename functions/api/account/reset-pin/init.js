@@ -1,5 +1,6 @@
 import { normalisePhone, json } from '../../../_lib/db.js';
 import { checkRateLimit, createAndSendOtp } from '../../../_lib/otp.js';
+import { clientIp } from '../../../_lib/rate-limit.js';
 
 // Forgot-PIN step 1: send an OTP (WhatsApp primary, SMS fallback) to a registered number.
 export async function onRequestPost({ request, env }) {
@@ -17,7 +18,7 @@ export async function onRequestPost({ request, env }) {
   ).bind(phone).first();
   if (!parent) return json({ error: 'not_registered' }, 404);
 
-  const limit = await checkRateLimit(db, phone);
+  const limit = await checkRateLimit(db, phone, clientIp(request));
   if (!limit.allowed) return json({ error: limit.reason, retryAfter: limit.retryAfter }, 429);
 
   const { otp, channel } = await createAndSendOtp(db, phone, env);

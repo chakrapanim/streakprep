@@ -1,5 +1,6 @@
 import { normalisePhone, json } from '../../_lib/db.js';
 import { checkRateLimit, createAndSendOtp } from '../../_lib/otp.js';
+import { clientIp } from '../../_lib/rate-limit.js';
 
 export async function onRequestPost({ request, env }) {
   const db = env.streakprep_db;
@@ -17,7 +18,7 @@ export async function onRequestPost({ request, env }) {
   if (existing) return json({ error: 'already_registered' }, 409);
 
   // Rate limit
-  const limit = await checkRateLimit(db, phone);
+  const limit = await checkRateLimit(db, phone, clientIp(request));
   if (!limit.allowed) return json({ error: limit.reason, retryAfter: limit.retryAfter }, 429);
 
   // Send OTP

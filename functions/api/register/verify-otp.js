@@ -11,7 +11,7 @@ export async function onRequestPost({ request, env }) {
   const otp   = (body.otp || '').trim();
 
   if (!phone) return json({ error: 'phone_required' }, 400);
-  if (!otp || otp.length !== 4) return json({ error: 'otp_invalid' }, 400);
+  if (!otp || otp.length !== 6) return json({ error: 'otp_invalid' }, 400);
 
   const valid = await verifyOtp(db, phone, otp);
   if (!valid) return json({ error: 'otp_incorrect' }, 400);

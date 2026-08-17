@@ -235,6 +235,17 @@ CREATE TABLE IF NOT EXISTS reminder_log (
 );
 
 -- ─────────────────────────────────────────
+-- RATE LIMIT EVENTS (backing store for functions/_lib/rate-limit.js)
+-- ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS rate_limit_events (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  key        TEXT    NOT NULL,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limit_events_key_created ON rate_limit_events (key, created_at);
+
+-- ─────────────────────────────────────────
 -- PAYMENT EVENTS (immutable ledger)
 -- Every Razorpay webhook lands here before touching subscriptions
 -- ─────────────────────────────────────────

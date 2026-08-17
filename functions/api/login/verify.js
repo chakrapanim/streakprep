@@ -1,9 +1,17 @@
 import { normalisePhone, json } from '../../_lib/db.js';
 import { verifyOtp } from '../../_lib/otp.js';
 import { verifyPin, randomHex } from '../../_lib/crypto.js';
+import { checkIpRateLimit, clientIp } from '../../_lib/rate-limit.js';
 
 export async function onRequestPost({ request, env }) {
   const db = env.streakprep_db;
+
+  // Every branch below eventually checks a PIN (4 digits = 10,000 combos). The 'otp'
+  // branch is already gated by a correct OTP, but the whitelisted reviewer-bypass
+  // branch (isReviewerBypass) checks a PIN with no other gate — this per-IP cap is
+  // what actually stops that path from being brute-forced.
+  const ok = await checkIpRateLimit(db, 'login_verify', clientIp(request), 15, 900);
+  if (!ok) return json({ error: 'rate_limit', retryAfter: 900 }, 429);
 
   let body;
   try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
@@ -34,7 +42,7 @@ export async function onRequestPost({ request, env }) {
     if (!device) return json({ error: 'device_expired' }, 401);
   } else if (method === 'otp' && otp) {
     // New/untrusted device — WhatsApp OTP + PIN required together.
-    if (otp.length !== 4) return json({ error: 'otp_invalid' }, 400);
+    if (otp.length !== 6) return json({ error: 'otp_invalid' }, 400);
     const otpOk = await verifyOtp(db, phone, otp);
     if (!otpOk) return json({ error: 'otp_incorrect' }, 401);
   } else if (method === 'pin' && !deviceToken && isReviewerBypass(env, phone)) {

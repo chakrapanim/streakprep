@@ -669,6 +669,8 @@
       .form-row       { grid-template-columns: 1fr; }
       .subject-grid   { grid-template-columns: 1fr; }
       .register-form  { padding: 24px 18px; }
+      .pin-row        { gap: 6px; }
+      .pin-box        { width: 38px; height: 48px; font-size: 1.15rem; }
       .stats-inner    { gap: 0; display: grid; grid-template-columns: 1fr 1fr; }
       .stat           { padding: 14px 10px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
       .stat:nth-child(2n) { border-right: none; }
@@ -1118,8 +1120,10 @@
   <div class="register-form" id="reg-otp-wrap" style="display:none">
     <div class="step-icon">📱</div>
     <div class="step-title">Enter OTP</div>
-    <p class="step-sub" id="otp-desc">We sent a 4-digit code to your WhatsApp</p>
+    <p class="step-sub" id="otp-desc">We sent a 6-digit code to your WhatsApp</p>
     <div class="pin-row" id="otp-boxes">
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
+      <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
       <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
       <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
       <input class="pin-box" maxlength="1" inputmode="numeric" type="tel" />
@@ -1503,7 +1507,7 @@
     const otp = getPinValue('otp-boxes');
     const errEl = document.getElementById('otp-error');
     errEl.textContent = '';
-    if (otp.length !== 4) { errEl.textContent = 'Enter all 4 digits.'; return; }
+    if (otp.length !== 6) { errEl.textContent = 'Enter all 6 digits.'; return; }
 
     const btn = document.getElementById('otp-verify-btn');
     btn.disabled = true; btn.textContent = 'Verifying…';
