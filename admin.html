@@ -108,6 +108,10 @@
     .btn-action.del    { border-color: rgba(239,68,68,0.35);  color: var(--red); background: rgba(239,68,68,0.06); }
     .btn-action.del:hover    { background: rgba(239,68,68,0.16); }
 
+    .coupon-header { display: grid; grid-template-columns: 1.2fr 1.1fr 1fr 1.1fr 0.9fr 100px; padding: 10px 16px; background: var(--card2); font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .coupon-row    { display: grid; grid-template-columns: 1.2fr 1.1fr 1fr 1.1fr 0.9fr 100px; padding: 12px 16px; border-top: 1px solid var(--border); align-items: center; }
+    .coupon-code   { font-weight: 800; font-size: 0.88rem; letter-spacing: 0.02em; }
+
     .pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; font-size: 0.82rem; color: var(--muted); }
     .page-btn { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; transition: border-color 0.15s; }
     .page-btn:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
@@ -234,6 +238,14 @@
 
         <div style="margin-top:32px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:0.9rem;font-weight:800">Coupons</div>
+            <button class="btn-create-reviewer" onclick="openCouponModal()">+ Create Coupon</button>
+          </div>
+          <div id="coupons-area"><div class="loading">Loading coupons…</div></div>
+        </div>
+
+        <div style="margin-top:32px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
             <div style="font-size:0.9rem;font-weight:800">Flagged Questions</div>
             <button onclick="loadFlags()" style="font-size:0.75rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:inherit">Refresh</button>
           </div>
@@ -241,6 +253,7 @@
         </div>
       </div>`;
     loadUsers();
+    loadCoupons();
     loadFlags();
   }
 
@@ -306,6 +319,112 @@
       </div>${pager}`;
   }
 
+  // ── Coupons ──────────────────────────────────────────────────
+  async function loadCoupons() {
+    const area = document.getElementById('coupons-area');
+    if (!area) return;
+    area.innerHTML = '<div class="loading">Loading…</div>';
+    try {
+      const res  = await fetch('/api/admin/coupons', { headers: authHeaders() });
+      const data = await res.json();
+      renderCoupons(data.coupons || []);
+    } catch { area.innerHTML = '<div class="empty">Could not load coupons.</div>'; }
+  }
+
+  function renderCoupons(coupons) {
+    const area = document.getElementById('coupons-area');
+    if (!coupons.length) {
+      area.innerHTML = '<div class="empty">No coupons yet. Create one to run a promo.</div>';
+      return;
+    }
+    const now = Math.floor(Date.now() / 1000);
+    const rows = coupons.map(c => {
+      const discount = c.discount_type === 'percent'
+        ? `${c.discount_value}% off`
+        : `₹${Math.round(c.discount_value / 100)} off`;
+      const redeemed = `${c.times_redeemed}${c.max_redemptions ? ' / ' + c.max_redemptions : ''}`;
+      const expires  = c.expires_at ? new Date(c.expires_at * 1000).toLocaleDateString() : 'Never';
+      const isExpired = c.expires_at && c.expires_at <= now;
+      const isMaxedOut = c.max_redemptions && c.times_redeemed >= c.max_redemptions;
+      const statusCls  = !c.is_active ? 'none' : (isExpired || isMaxedOut) ? 'expired' : 'active';
+      const statusText = !c.is_active ? 'Inactive' : isExpired ? 'Expired' : isMaxedOut ? 'Maxed out' : 'Active';
+      const toggleBtn = c.is_active
+        ? `<button class="btn-action del"  onclick="toggleCoupon(${c.id},false)">Deactivate</button>`
+        : `<button class="btn-action make" onclick="toggleCoupon(${c.id},true)">Activate</button>`;
+      return `
+        <div class="coupon-row">
+          <div class="coupon-code">${esc(c.code)}</div>
+          <div class="cell">${discount}</div>
+          <div class="cell">${redeemed}</div>
+          <div class="cell">${expires}</div>
+          <div><span class="pill ${statusCls}">${statusText}</span></div>
+          <div class="actions-cell">${toggleBtn}</div>
+        </div>`;
+    }).join('');
+
+    area.innerHTML = `
+      <div class="table-wrap">
+        <div class="coupon-header">
+          <div>Code</div><div>Discount</div><div>Redeemed</div><div>Expires</div><div>Status</div><div>Actions</div>
+        </div>
+        ${rows}
+      </div>`;
+  }
+
+  async function toggleCoupon(id, isActive) {
+    await fetch('/api/admin/coupons', {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ id, isActive }),
+    });
+    loadCoupons();
+  }
+
+  function openCouponModal() {
+    modalMode = 'coupon';
+    renderModal();
+  }
+
+  async function confirmCreateCoupon() {
+    const code           = document.getElementById('cp-code')?.value.trim();
+    const discountType   = document.getElementById('cp-type')?.value;
+    const discountValue  = document.getElementById('cp-value')?.value.trim();
+    const maxRedemptions = document.getElementById('cp-max')?.value.trim();
+    const expiresInDays  = document.getElementById('cp-expiry')?.value.trim();
+    const errEl = document.getElementById('modal-err');
+    errEl.textContent = '';
+
+    if (!/^[A-Za-z0-9]{3,20}$/.test(code)) { errEl.textContent = 'Code must be 3-20 letters/numbers.'; return; }
+    if (!discountValue || isNaN(discountValue) || Number(discountValue) <= 0) { errEl.textContent = 'Enter a valid discount amount.'; return; }
+    if (discountType === 'percent' && Number(discountValue) > 100) { errEl.textContent = 'Percent discount can\'t exceed 100.'; return; }
+
+    const btn = document.getElementById('modal-confirm-btn');
+    btn.disabled = true; btn.textContent = 'Creating…';
+
+    try {
+      const res = await fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          code, discountType, discountValue: Number(discountValue),
+          maxRedemptions: maxRedemptions || null,
+          expiresInDays: expiresInDays || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        btn.disabled = false; btn.textContent = 'Create Coupon →';
+        errEl.textContent = data.error === 'code_already_exists' ? 'That code already exists.' : (data.error || 'Something went wrong.');
+        return;
+      }
+      removeModal();
+      loadCoupons();
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Create Coupon →';
+      errEl.textContent = 'Network error — please try again.';
+    }
+  }
+
   // ── Create Reviewer Modal ──────────────────────────────────────
   function openCreateModal() {
     modalMode    = 'create';
@@ -346,6 +465,46 @@
           <div class="modal-actions">
             <button class="btn-cancel-modal" onclick="removeModal()">Cancel</button>
             <button class="btn-confirm orange-btn" id="modal-confirm-btn" onclick="confirmCreate()">Create Account →</button>
+          </div>
+        </div>`;
+    } else if (modalMode === 'coupon') {
+      el.innerHTML = `
+        <div class="modal-card">
+          <div class="modal-title">Create Coupon</div>
+          <p class="modal-sub">Applies at checkout when a parent enters this code. Uppercased automatically.</p>
+
+          <label class="form-label">Code</label>
+          <input type="text" id="cp-code" class="form-input" placeholder="e.g. LAUNCH50" style="text-transform:uppercase" />
+
+          <div class="form-row">
+            <div>
+              <label class="form-label">Discount Type</label>
+              <select id="cp-type" class="form-input">
+                <option value="percent">Percent off</option>
+                <option value="flat">Flat ₹ off</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Discount Value</label>
+              <input type="number" id="cp-value" class="form-input" placeholder="e.g. 50" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label class="form-label">Max Redemptions</label>
+              <input type="number" id="cp-max" class="form-input" placeholder="Blank = unlimited" />
+            </div>
+            <div>
+              <label class="form-label">Expires In (days)</label>
+              <input type="number" id="cp-expiry" class="form-input" placeholder="Blank = never" />
+            </div>
+          </div>
+
+          <p class="modal-err" id="modal-err"></p>
+          <div class="modal-actions">
+            <button class="btn-cancel-modal" onclick="removeModal()">Cancel</button>
+            <button class="btn-confirm orange-btn" id="modal-confirm-btn" onclick="confirmCreateCoupon()">Create Coupon →</button>
           </div>
         </div>`;
     } else {
