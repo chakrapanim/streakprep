@@ -87,6 +87,12 @@ export async function onRequestPost({ request, env }) {
     await db.prepare(`UPDATE subscriptions SET status = 'expired', updated_at = ? WHERE id = ?`).bind(now, sub.id).run();
   } else if (eventType === 'subscription.cancelled') {
     await db.prepare(`UPDATE subscriptions SET status = 'cancelled', cancelled_at = ?, updated_at = ? WHERE id = ?`).bind(now, now, sub.id).run();
+  } else if (eventType === 'subscription.completed') {
+    // Fires once total_count billing cycles are exhausted (we set 120 — 10
+    // years of months, Razorpay's standard "effectively unlimited, until
+    // cancelled" workaround). Treated the same as cancellation: the
+    // subscription has naturally ended, not failed.
+    await db.prepare(`UPDATE subscriptions SET status = 'cancelled', cancelled_at = ?, updated_at = ? WHERE id = ?`).bind(now, now, sub.id).run();
   }
 
   await db.prepare('UPDATE payment_events SET processed = 1, subscription_id = ? WHERE razorpay_event_id = ?')
