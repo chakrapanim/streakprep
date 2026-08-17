@@ -237,6 +237,17 @@
         <div id="users-area"><div class="loading">Loading users…</div></div>
 
         <div style="margin-top:32px">
+          <div style="font-size:0.9rem;font-weight:800;margin-bottom:12px">Settings</div>
+          <div class="table-wrap" style="padding:16px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+            <div>
+              <div style="font-weight:700;font-size:0.88rem">Referral Rewards</div>
+              <div style="font-size:0.78rem;color:var(--muted);margin-top:2px">When on, a referrer gets +30 days the moment their friend's first payment charges. Turn off to pause referral payouts without touching codes or copy.</div>
+            </div>
+            <button id="referral-toggle-btn" class="btn-action" style="white-space:nowrap" onclick="toggleReferralRewards()">…</button>
+          </div>
+        </div>
+
+        <div style="margin-top:32px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
             <div style="font-size:0.9rem;font-weight:800">Coupons</div>
             <button class="btn-create-reviewer" onclick="openCouponModal()">+ Create Coupon</button>
@@ -253,8 +264,44 @@
         </div>
       </div>`;
     loadUsers();
+    loadSettings();
     loadCoupons();
     loadFlags();
+  }
+
+  // ── Settings ─────────────────────────────────────────────────
+  let referralRewardsEnabled = true;
+
+  async function loadSettings() {
+    try {
+      const res  = await fetch('/api/admin/settings', { headers: authHeaders() });
+      const data = await res.json();
+      referralRewardsEnabled = !!data.referralRewardsEnabled;
+    } catch { referralRewardsEnabled = true; }
+    renderReferralToggle();
+  }
+
+  function renderReferralToggle() {
+    const btn = document.getElementById('referral-toggle-btn');
+    if (!btn) return;
+    btn.className = 'btn-action ' + (referralRewardsEnabled ? 'del' : 'make');
+    btn.textContent = referralRewardsEnabled ? 'Turn Off' : 'Turn On';
+  }
+
+  async function toggleReferralRewards() {
+    const next = !referralRewardsEnabled;
+    const btn  = document.getElementById('referral-toggle-btn');
+    btn.disabled = true;
+    try {
+      await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ referralRewardsEnabled: next }),
+      });
+      referralRewardsEnabled = next;
+    } catch { alert('Failed. Please try again.'); }
+    btn.disabled = false;
+    renderReferralToggle();
   }
 
   async function loadUsers(page = 1) {

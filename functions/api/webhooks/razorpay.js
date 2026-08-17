@@ -1,4 +1,4 @@
-import { json } from '../../_lib/db.js';
+import { json, getSetting } from '../../_lib/db.js';
 import { verifyWebhookSignature } from '../../_lib/razorpay.js';
 import { sendWhatsAppTemplate } from '../../_lib/whatsapp.js';
 
@@ -106,6 +106,13 @@ export async function onRequestPost({ request, env }) {
 // can't be farmed for free rewards. Reward = 30 days added to the referrer's
 // first-registered child's current subscription (whatever state it's in).
 async function creditReferralRewardIfAny(db, referredStudentId, now) {
+  // Admin-controlled kill switch — run referrals as a timed growth push rather than an
+  // always-on giveaway. Whatever this is set to AT THE MOMENT a friend's first payment
+  // fires is what decides the reward; there's no backfill/retroactive credit if it's
+  // flipped back on later, since the triggering event (first charge) only happens once.
+  const enabled = (await getSetting(db, 'referral_rewards_enabled', '1')) === '1';
+  if (!enabled) return;
+
   const student = await db.prepare('SELECT parent_id FROM students WHERE id = ?').bind(referredStudentId).first();
   if (!student) return;
 
