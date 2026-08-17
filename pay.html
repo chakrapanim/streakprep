@@ -230,13 +230,26 @@
       return;
     }
 
-    // Razorpay Checkout — embedded modal, no page redirect.
+    // Razorpay Checkout — embedded modal, no page redirect. UPI is put first
+    // and expanded by default (QR/intent — Razorpay auto-renders the QR code
+    // for subscriptions, no extra flag needed) since that's how most Indian
+    // parents will actually pay; card/netbanking stay available below it via
+    // show_default_blocks, not hidden entirely.
     const rzp = new Razorpay({
       key: data.keyId,
       subscription_id: data.subscriptionId,
       name: 'StreakPrep',
       description: planLabel(data.planName) + ' subscription',
       theme: { color: '#FF6B35' },
+      config: {
+        display: {
+          blocks: {
+            upi: { name: 'Pay via UPI', instruments: [{ method: 'upi' }] },
+          },
+          sequence: ['block.upi'],
+          preferences: { show_default_blocks: true },
+        },
+      },
       handler: function () {
         track('pay_checkout_success', { studentId });
         notice.textContent = "Payment received! We'll confirm your subscription shortly — refresh your dashboard in a moment.";
