@@ -182,10 +182,16 @@ CREATE TABLE IF NOT EXISTS referrals (
   referrer_parent_id  INTEGER NOT NULL REFERENCES parents(id),
   referred_parent_id  INTEGER NOT NULL UNIQUE REFERENCES parents(id),  -- each parent referred at most once
   reward_given        INTEGER NOT NULL DEFAULT 0,  -- 1 once referrer is credited
+  -- Denormalized phones (not just a live join to parents) so the "once per real
+  -- person, lifetime" guard survives a hard-deleted-and-recreated account.
+  referrer_phone      TEXT,
+  referred_phone      TEXT,
   created_at          INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_parent_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer_phone ON referrals(referrer_phone);
+CREATE INDEX IF NOT EXISTS idx_referrals_referred_phone ON referrals(referred_phone);
 
 -- ─────────────────────────────────────────
 -- EVENTS (click-stream / funnel telemetry, self-hosted)

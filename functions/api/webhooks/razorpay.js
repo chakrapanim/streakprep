@@ -117,9 +117,19 @@ async function creditReferralRewardIfAny(db, referredStudentId, now) {
   if (!student) return;
 
   const referral = await db.prepare(
-    'SELECT id, referrer_parent_id FROM referrals WHERE referred_parent_id = ? AND reward_given = 0'
+    'SELECT id, referrer_parent_id, referrer_phone FROM referrals WHERE referred_parent_id = ? AND reward_given = 0'
   ).bind(student.parent_id).first();
   if (!referral) return;
+
+  // Lifetime cap: one reward per referrer's phone number, ever — not per referral row.
+  // Keyed on the denormalized phone (not referrer_parent_id) so it still holds even if
+  // the referrer's account was deleted and re-registered since their earlier reward.
+  if (referral.referrer_phone) {
+    const alreadyRewarded = await db.prepare(
+      'SELECT 1 FROM referrals WHERE referrer_phone = ? AND reward_given = 1'
+    ).bind(referral.referrer_phone).first();
+    if (alreadyRewarded) return;
+  }
 
   const targetSub = await db.prepare(`
     SELECT id, status, trial_ends_at, current_period_end, grace_until FROM subscriptions

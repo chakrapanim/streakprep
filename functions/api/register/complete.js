@@ -92,15 +92,24 @@ export async function onRequestPost({ request, env }) {
   // credited here — that happens on the referred student's first successful
   // payment (in the Razorpay webhook handler), so a signup that never
   // converts to paid can't be farmed for free rewards.
+  //
+  // A phone number can be referred at most once, EVER — checked against
+  // referred_phone (not just the referred_parent_id UNIQUE constraint), so
+  // deleting and re-registering the same number can't restart a fresh,
+  // reward-eligible referral chain.
   if (referral) {
     const referrer = await db.prepare(
-      'SELECT parent_id FROM referral_codes WHERE code = ?'
+      'SELECT rc.parent_id, p.phone FROM referral_codes rc JOIN parents p ON p.id = rc.parent_id WHERE rc.code = ?'
     ).bind(referral).first();
-    if (referrer && referrer.parent_id !== parentId) {
+    const alreadyReferred = await db.prepare(
+      'SELECT 1 FROM referrals WHERE referred_phone = ?'
+    ).bind(phone).first();
+
+    if (referrer && referrer.parent_id !== parentId && !alreadyReferred) {
       try {
         await db.prepare(
-          'INSERT INTO referrals (referrer_parent_id, referred_parent_id, reward_given, created_at) VALUES (?, ?, 0, ?)'
-        ).bind(referrer.parent_id, parentId, now).run();
+          'INSERT INTO referrals (referrer_parent_id, referred_parent_id, reward_given, referrer_phone, referred_phone, created_at) VALUES (?, ?, 0, ?, ?, ?)'
+        ).bind(referrer.parent_id, parentId, referrer.phone, phone, now).run();
       } catch { /* referred_parent_id already used (shouldn't happen for a brand-new parent) */ }
     }
   }
