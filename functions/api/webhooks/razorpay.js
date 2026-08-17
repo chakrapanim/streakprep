@@ -84,6 +84,16 @@ export async function onRequestPost({ request, env }) {
           await db.prepare(
             "UPDATE referral_credits SET status = 'applied', applied_payment_id = ?, applied_amount_paise = ?, applied_at = ? WHERE id = ?"
           ).bind(paymentId, chargeAmount, now, pendingCredit.id).run();
+
+          // Distinct from the pitch copy ("free month") — this transactional message's
+          // job is to preempt the "why was I charged?" support ticket: the parent sees
+          // a full debit first, then this refund lands separately days later. Naming
+          // the exact amount and timing here is what actually kills the confusion, not
+          // whichever word ("free"/"cashback") was used in the referral pitch.
+          if (env.MSG91_WA_REFERRAL_REFUND_TEMPLATE) {
+            const refundRupees = (chargeAmount / 100).toFixed(0);
+            sendWhatsAppTemplate(env, sub.phone, env.MSG91_WA_REFERRAL_REFUND_TEMPLATE, [sub.student_name, refundRupees]).catch(() => {});
+          }
         } catch (e) {
           console.error('[referral refund failed]', pendingCredit.id, e?.message || e);
         }
