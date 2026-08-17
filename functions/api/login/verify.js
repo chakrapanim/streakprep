@@ -37,10 +37,14 @@ export async function onRequestPost({ request, env }) {
     if (otp.length !== 4) return json({ error: 'otp_invalid' }, 400);
     const otpOk = await verifyOtp(db, phone, otp);
     if (!otpOk) return json({ error: 'otp_incorrect' }, 401);
-  } else if (method === 'pin' && !deviceToken) {
-    // Defensive fallback for stale cached clients pre-dating the OTP-on-new-device
-    // fix — current login.html always sends method:'otp' with the code when
-    // login/init returned method:'otp'. Should rarely hit in practice.
+  } else if (method === 'pin' && !deviceToken && isReviewerBypass(env, phone)) {
+    // PIN-only bypass, scoped to explicitly whitelisted phone numbers only
+    // (REVIEWER_BYPASS_PHONES) — e.g. for a payment-gateway reviewer who
+    // can't receive a WhatsApp OTP on their own device. NOT a general
+    // fallback: any other phone hitting this combination is rejected below,
+    // since without that restriction this branch would let anyone bypass
+    // OTP entirely on an untrusted device via a direct API call (no
+    // rate-limit on PIN guesses here — only 10,000 possible 4-digit PINs).
   } else {
     return json({ error: 'method_required' }, 400);
   }
@@ -75,4 +79,8 @@ export async function onRequestPost({ request, env }) {
   }
 
   return json({ ok: true, sessionToken, deviceToken: newDeviceToken });
+}
+
+function isReviewerBypass(env, phone) {
+  return (env.REVIEWER_BYPASS_PHONES || '').split(',').map(p => p.trim()).includes(phone);
 }

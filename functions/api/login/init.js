@@ -16,6 +16,12 @@ export async function onRequestPost({ request, env }) {
   const parent = await db.prepare('SELECT id FROM parents WHERE phone = ?').bind(phone).first();
   if (!parent) return json({ error: 'not_registered' }, 404);
 
+  // Reviewer bypass (e.g. a payment-gateway reviewer who can't receive a
+  // WhatsApp OTP on their own device) — scoped to explicit whitelisted
+  // phone numbers only, see verify.js's isReviewerBypass for the matching check.
+  const bypassPhones = (env.REVIEWER_BYPASS_PHONES || '').split(',').map(p => p.trim());
+  if (bypassPhones.includes(phone)) return json({ method: 'pin' });
+
   // Check trusted device
   if (deviceToken) {
     const now    = Math.floor(Date.now() / 1000);
