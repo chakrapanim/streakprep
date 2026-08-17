@@ -1,5 +1,5 @@
 import { json, getSetting } from '../../_lib/db.js';
-import { verifyWebhookSignature } from '../../_lib/razorpay.js';
+import { verifyWebhookSignature, refundPayment } from '../../_lib/razorpay.js';
 import { sendWhatsAppTemplate } from '../../_lib/whatsapp.js';
 
 // Razorpay webhook — the source of truth for subscription lifecycle. The
@@ -54,8 +54,9 @@ export async function onRequestPost({ request, env }) {
   const wasFirstCharge = sub.status === 'pending';
 
   if (eventType === 'subscription.charged') {
-    const periodEnd = rzpSub.current_end || (now + 30 * 24 * 60 * 60);
-    const paymentId = evt.payload?.payment?.entity?.id || null;
+    const periodEnd  = rzpSub.current_end || (now + 30 * 24 * 60 * 60);
+    const paymentId  = evt.payload?.payment?.entity?.id || null;
+    const chargeAmount = evt.payload?.payment?.entity?.amount ?? sub.amount_paise;
     await db.prepare(`
       UPDATE subscriptions
       SET status = 'active', current_period_start = ?, current_period_end = ?,
@@ -65,6 +66,28 @@ export async function onRequestPost({ request, env }) {
 
     if (wasFirstCharge) {
       await creditReferralRewardIfAny(db, sub.student_id, now);
+    }
+
+    // Referral reward for an already-active subscriber: this charge went through
+    // in full as normal; if this subscription has a pending referral credit
+    // (from creditReferralRewardIfAny, possibly from an earlier cycle), refund it
+    // now against the payment that just landed. Best-effort — a transient
+    // Razorpay failure leaves the credit 'pending' and it's retried on the next
+    // charge, rather than losing the reward.
+    if (paymentId) {
+      const pendingCredit = await db.prepare(
+        "SELECT id FROM referral_credits WHERE subscription_id = ? AND status = 'pending' LIMIT 1"
+      ).bind(sub.id).first();
+      if (pendingCredit) {
+        try {
+          await refundPayment(env, paymentId, chargeAmount);
+          await db.prepare(
+            "UPDATE referral_credits SET status = 'applied', applied_payment_id = ?, applied_amount_paise = ?, applied_at = ? WHERE id = ?"
+          ).bind(paymentId, chargeAmount, now, pendingCredit.id).run();
+        } catch (e) {
+          console.error('[referral refund failed]', pendingCredit.id, e?.message || e);
+        }
+      }
     }
 
     // Best-effort receipt — a WhatsApp send failure shouldn't roll back the
@@ -140,12 +163,22 @@ async function creditReferralRewardIfAny(db, referredStudentId, now) {
   if (targetSub) {
     const THIRTY_DAYS = 30 * 24 * 60 * 60;
     if (targetSub.status === 'trial') {
+      // No live Razorpay billing yet — a local extension is real and sufficient.
       await db.prepare('UPDATE subscriptions SET trial_ends_at = trial_ends_at + ?, grace_until = grace_until + ?, updated_at = ? WHERE id = ?')
         .bind(THIRTY_DAYS, THIRTY_DAYS, now, targetSub.id).run();
     } else if (targetSub.status === 'active') {
-      await db.prepare('UPDATE subscriptions SET current_period_end = current_period_end + ?, updated_at = ? WHERE id = ?')
-        .bind(THIRTY_DAYS, now, targetSub.id).run();
+      // A live Razorpay autopay mandate is already charging on its own schedule —
+      // extending current_period_end locally wouldn't stop that real charge, and
+      // would just get overwritten by the next subscription.charged event anyway.
+      // Instead: let the next charge go through in full, then refund it (100% —
+      // matches "your own next month, free"), applied in the subscription.charged
+      // handler above once it lands.
+      await db.prepare(
+        'INSERT INTO referral_credits (referral_id, subscription_id, status, created_at) VALUES (?, ?, ?, ?)'
+      ).bind(referral.id, targetSub.id, 'pending', now).run();
     } else {
+      // Expired/cancelled/grace — no confirmed live recurring charge to conflict
+      // with, so reactivating locally for 30 days is real and sufficient.
       await db.prepare("UPDATE subscriptions SET status = 'active', current_period_end = ?, updated_at = ? WHERE id = ?")
         .bind(now + THIRTY_DAYS, now, targetSub.id).run();
     }

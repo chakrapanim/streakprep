@@ -193,6 +193,22 @@ CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_parent_i
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer_phone ON referrals(referrer_phone);
 CREATE INDEX IF NOT EXISTS idx_referrals_referred_phone ON referrals(referred_phone);
 
+-- Referral reward for an already-active subscriber: refund their next real charge
+-- in full rather than touching Razorpay's billing schedule directly (see
+-- migrate-014.sql for why pause/resume and plan-swap were ruled out).
+CREATE TABLE IF NOT EXISTS referral_credits (
+  id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+  referral_id          INTEGER NOT NULL REFERENCES referrals(id),
+  subscription_id      INTEGER NOT NULL REFERENCES subscriptions(id),
+  status               TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','applied')),
+  applied_payment_id    TEXT,
+  applied_amount_paise  INTEGER,
+  created_at           INTEGER NOT NULL DEFAULT (unixepoch()),
+  applied_at           INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_referral_credits_sub_status ON referral_credits(subscription_id, status);
+
 -- ─────────────────────────────────────────
 -- EVENTS (click-stream / funnel telemetry, self-hosted)
 -- anon_id persists in localStorage from first landing-page visit, before any

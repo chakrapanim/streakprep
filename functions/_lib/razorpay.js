@@ -55,6 +55,20 @@ export async function cancelSubscription(env, subscriptionId) {
   return rzpRequest(env, 'POST', `/subscriptions/${subscriptionId}/cancel`, { cancel_at_cycle_end: 0 });
 }
 
+// Referral rewards for an already-active subscriber are delivered as a refund
+// against their next real charge rather than by touching the subscription's
+// billing schedule — pausing/resuming or plan-swapping to skip/discount one
+// cycle proved fragile (Razorpay's Resume API only accepts resume_at:"now",
+// no future scheduling). "Normal" speed has no processing fee (vs "instant",
+// which does) — fine since this fires right after the charge, not urgently.
+export async function refundPayment(env, paymentId, amountPaise) {
+  return rzpRequest(env, 'POST', `/payments/${paymentId}/refund`, {
+    amount: amountPaise,
+    speed: 'normal',
+    notes: { reason: 'referral_reward' },
+  });
+}
+
 // HMAC-SHA256 signature verification for incoming webhooks — required so a
 // spoofed POST can't fake a payment event. Compares against the raw request
 // body (must be verified before JSON.parse'ing it).
