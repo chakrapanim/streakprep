@@ -1,6 +1,6 @@
 import { getSession } from '../../_lib/auth.js';
 import { json } from '../../_lib/db.js';
-import { razorpayConfigured, createPlan, createSubscription } from '../../_lib/razorpay.js';
+import { razorpayConfigured, createPlan, createSubscription, cancelSubscription } from '../../_lib/razorpay.js';
 
 export async function onRequestPost({ request, env }) {
   const db      = env.streakprep_db;
@@ -25,13 +25,31 @@ export async function onRequestPost({ request, env }) {
   ).bind(studentId, session.parent_id).first();
   if (!student) return json({ error: 'student_not_found' }, 404);
 
+  const now = Math.floor(Date.now() / 1000);
+
+  // Prevent duplicate/orphaned subscriptions from retries: block a genuinely
+  // active, already-paid-for subscription outright, and clean up (cancel on
+  // Razorpay's side, not just locally) any stale 'pending' one from an earlier
+  // abandoned checkout attempt before creating a fresh one. Without this,
+  // dashboard/quiz-access logic can get shadowed by leftover pending rows —
+  // see the active-priority ORDER BY fix in dashboard.js/quiz/start.js for
+  // the display-side half of this same bug class.
+  const existing = await db.prepare(
+    "SELECT id, status, current_period_end, razorpay_subscription_id FROM subscriptions WHERE student_id = ? ORDER BY (status = 'active') DESC, created_at DESC LIMIT 1"
+  ).bind(studentId).first();
+  if (existing && existing.status === 'active' && existing.current_period_end > now) {
+    return json({ error: 'already_active' }, 409);
+  }
+  if (existing && existing.status === 'pending' && existing.razorpay_subscription_id) {
+    await cancelSubscription(env, existing.razorpay_subscription_id).catch(() => {});
+  }
+
   const subjects = JSON.parse(student.subjects || '[]');
   const plan     = planFor(subjects.length);
   let amountPaise = plan.paise;
   let appliedCoupon = null;
 
   if (couponCode) {
-    const now    = Math.floor(Date.now() / 1000);
     const coupon = await db.prepare('SELECT * FROM coupons WHERE code = ? AND is_active = 1').bind(couponCode).first();
     const valid  = coupon
       && (!coupon.expires_at || coupon.expires_at > now)
@@ -54,8 +72,6 @@ export async function onRequestPost({ request, env }) {
   } catch (e) {
     return json({ error: 'razorpay_error', detail: e.message }, 502);
   }
-
-  const now = Math.floor(Date.now() / 1000);
 
   // New row rather than mutating the trial row — preserves history, and
   // matches the "latest row wins" pattern already used by dashboard/account/quiz.

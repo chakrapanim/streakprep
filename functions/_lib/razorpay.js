@@ -51,6 +51,10 @@ export async function createSubscription(env, { planId, customerNotify = 1, note
   });
 }
 
+export async function cancelSubscription(env, subscriptionId) {
+  return rzpRequest(env, 'POST', `/subscriptions/${subscriptionId}/cancel`, { cancel_at_cycle_end: 0 });
+}
+
 // HMAC-SHA256 signature verification for incoming webhooks — required so a
 // spoofed POST can't fake a payment event. Compares against the raw request
 // body (must be verified before JSON.parse'ing it).

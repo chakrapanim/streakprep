@@ -13,7 +13,7 @@ export async function onRequestGet({ request, env }) {
   const [student, parent, sub, siblings] = await Promise.all([
     db.prepare('SELECT id, name, class, subjects FROM students WHERE id = ? AND is_active = 1').bind(studentId).first(),
     db.prepare('SELECT phone, email FROM parents WHERE id = ? AND is_active = 1').bind(parentId).first(),
-    db.prepare('SELECT status, trial_ends_at, current_period_end, grace_until, plan, amount_paise FROM subscriptions WHERE student_id = ? ORDER BY created_at DESC LIMIT 1').bind(studentId).first(),
+    db.prepare("SELECT status, trial_ends_at, current_period_end, grace_until, plan, amount_paise FROM subscriptions WHERE student_id = ? ORDER BY (status = 'active') DESC, created_at DESC LIMIT 1").bind(studentId).first(),
     db.prepare('SELECT id, name, class FROM students WHERE parent_id = ? AND is_active = 1 ORDER BY id').bind(parentId).all(),
   ]);
 
@@ -50,5 +50,6 @@ function calcSubStatus(sub, now) {
     return { type: 'expired', label: 'Subscription expired — renew to continue', daysLeft: 0 };
   }
   if (sub.status === 'grace') return { type: 'grace', label: 'Subscription ended — renew to continue', daysLeft: 0 };
+  if (sub.status === 'pending') return { type: 'pending', label: 'Payment processing — this can take a few minutes', daysLeft: 0 };
   return { type: 'expired', label: 'Subscription expired', daysLeft: 0 };
 }

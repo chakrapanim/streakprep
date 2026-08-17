@@ -224,6 +224,11 @@
       couponErr.textContent = 'That coupon code is invalid or expired.';
       return;
     }
+    if (data.error === 'already_active') {
+      notice.textContent = "This subscription is already active — refresh your dashboard to see it.";
+      notice.classList.add('show');
+      return;
+    }
     if (!res.ok) {
       btn.disabled = false; btn.textContent = 'Continue to Payment →';
       couponErr.textContent = 'Something went wrong. Please try again.';
@@ -252,6 +257,7 @@
       },
       handler: function () {
         track('pay_checkout_success', { studentId });
+        btn.textContent = 'Payment received ✓';
         notice.textContent = "Payment received! We'll confirm your subscription shortly — refresh your dashboard in a moment.";
         notice.classList.add('show');
       },

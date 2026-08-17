@@ -27,8 +27,11 @@ export async function onRequestGet({ request, env }) {
 
   // Subscription check — reviewers bypass
   if (!isReviewer) {
+    // Active status always wins regardless of creation time — otherwise a paid,
+    // active subscription can get shadowed by a later abandoned/incomplete
+    // checkout retry (a 'pending' row), wrongly blocking a student who already paid.
     const sub = await db.prepare(
-      'SELECT status, trial_ends_at, current_period_end, grace_until FROM subscriptions WHERE student_id = ? ORDER BY created_at DESC LIMIT 1'
+      "SELECT status, trial_ends_at, current_period_end, grace_until FROM subscriptions WHERE student_id = ? ORDER BY (status = 'active') DESC, created_at DESC LIMIT 1"
     ).bind(studentId).first();
     const canQuiz = sub && (
       (sub.status === 'trial'  && sub.trial_ends_at > now) ||

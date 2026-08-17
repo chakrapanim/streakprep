@@ -19,7 +19,7 @@ export async function onRequestGet({ request, env }) {
 
   const withPlans = await Promise.all(students.map(async (s) => {
     const sub = await db.prepare(
-      'SELECT status, trial_ends_at, current_period_end, grace_until, plan, amount_paise FROM subscriptions WHERE student_id = ? ORDER BY created_at DESC LIMIT 1'
+      "SELECT status, trial_ends_at, current_period_end, grace_until, plan, amount_paise FROM subscriptions WHERE student_id = ? ORDER BY (status = 'active') DESC, created_at DESC LIMIT 1"
     ).bind(s.id).first();
 
     const subjects = JSON.parse(s.subjects || '[]');
@@ -63,5 +63,6 @@ function calcSubStatus(sub, now) {
     return { type: 'expired', label: 'Subscription expired — renew to continue', daysLeft: 0 };
   }
   if (sub.status === 'grace') return { type: 'grace', label: 'Subscription ended — renew to continue', daysLeft: 0 };
+  if (sub.status === 'pending') return { type: 'pending', label: 'Payment processing — this can take a few minutes', daysLeft: 0 };
   return { type: 'expired', label: 'Subscription expired', daysLeft: 0 };
 }

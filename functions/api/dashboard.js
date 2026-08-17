@@ -16,7 +16,10 @@ export async function onRequestGet({ request, env }) {
   const [student, subscription, streak, siblingsRes, quizzesRes] = await Promise.all([
     db.prepare('SELECT id, name, class, subjects FROM students WHERE id = ? AND is_active = 1')
       .bind(studentId).first(),
-    db.prepare('SELECT * FROM subscriptions WHERE student_id = ? ORDER BY created_at DESC LIMIT 1')
+    // Active status always wins regardless of creation time — otherwise a later
+    // abandoned/incomplete checkout attempt (a 'pending' row from a retry) can
+    // shadow an already-successfully-paid 'active' subscription.
+    db.prepare("SELECT * FROM subscriptions WHERE student_id = ? ORDER BY (status = 'active') DESC, created_at DESC LIMIT 1")
       .bind(studentId).first(),
     db.prepare('SELECT current_streak, longest_streak, last_quiz_date FROM streaks WHERE student_id = ?')
       .bind(studentId).first(),
@@ -73,6 +76,9 @@ function calcSubStatus(sub, now) {
   }
   if (sub.status === 'grace') {
     return { type: 'grace', label: 'Subscription ended — renew to continue', daysLeft: 0 };
+  }
+  if (sub.status === 'pending') {
+    return { type: 'pending', label: 'Payment processing — this can take a few minutes', daysLeft: 0 };
   }
   return { type: 'expired', label: 'Subscription expired', daysLeft: 0 };
 }
