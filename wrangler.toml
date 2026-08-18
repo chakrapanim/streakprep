@@ -11,3 +11,17 @@ PUBLIC_BASE_URL = "https://pub-16b20cf36bbe496398d8324667b49018.r2.dev/media"
 binding = "streakprep_db"
 database_name = "streakprep-db"
 database_id = "babcd88c-0e5e-4ddd-b791-855d69c5fa4c"
+
+# ── Preview (staging) environment ──────────────────────────────────────────
+# Cloudflare Pages has exactly two environments: production (top-level config
+# above) and preview (every non-production deploy, e.g. `wrangler pages deploy
+# --branch staging`). Preview does NOT inherit top-level bindings/vars, so they
+# are redeclared here. Same binding name `streakprep_db` so app code is
+# unchanged — it just points at the separate staging D1.
+[env.preview.vars]
+PUBLIC_BASE_URL = "https://pub-16b20cf36bbe496398d8324667b49018.r2.dev/media"
+
+[[env.preview.d1_databases]]
+binding = "streakprep_db"
+database_name = "streakprep-db-staging"
+database_id = "bc782f3a-82c4-453e-85af-3c039d9fe95d"
