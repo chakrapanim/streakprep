@@ -315,7 +315,16 @@
       showStep('step-pin');
       setupPinBoxes('l-pin-boxes');
       if (!isTrusted) setupPinBoxes('l-otp-boxes');
-      const firstBox = isTrusted ? '#l-pin-boxes .pin-box' : '#l-otp-boxes .pin-box';
+      // Dev/staging: login/init returns _devOtp only when no WhatsApp channel is
+      // configured (staging/dev — never prod). Prefill the WhatsApp code boxes.
+      if (!isTrusted && data._devOtp) {
+        const boxes = document.querySelectorAll('#l-otp-boxes .pin-box');
+        String(data._devOtp).split('').forEach((d, i) => {
+          if (boxes[i]) { boxes[i].value = d; boxes[i].classList.add('filled'); }
+        });
+        document.getElementById('pin-sub').innerHTML = 'Dev mode — WhatsApp code auto-filled (<b>' + data._devOtp + '</b>). Enter your PIN.';
+      }
+      const firstBox = (isTrusted || data._devOtp) ? '#l-pin-boxes .pin-box' : '#l-otp-boxes .pin-box';
       setTimeout(() => document.querySelector(firstBox).focus(), 100);
 
     } catch {
@@ -430,7 +439,17 @@
       showStep('step-reset');
       setupPinBoxes('r-otp-boxes');
       setupPinBoxes('r-pin-boxes');
-      setTimeout(() => document.querySelector('#r-otp-boxes .pin-box').focus(), 100);
+      // Dev/staging: reset-pin/init returns _devOtp only when no WhatsApp channel
+      // is configured (never prod). Prefill the reset code boxes.
+      if (data._devOtp) {
+        const boxes = document.querySelectorAll('#r-otp-boxes .pin-box');
+        String(data._devOtp).split('').forEach((d, i) => {
+          if (boxes[i]) { boxes[i].value = d; boxes[i].classList.add('filled'); }
+        });
+        document.getElementById('reset-sub').innerHTML = 'Dev mode — code auto-filled (<b>' + data._devOtp + '</b>). Choose a new PIN.';
+      }
+      const resetFirst = data._devOtp ? '#r-pin-boxes .pin-box' : '#r-otp-boxes .pin-box';
+      setTimeout(() => document.querySelector(resetFirst).focus(), 100);
     } catch {
       if (link) link.textContent = 'Reset it →';
       document.getElementById('pin-err').textContent = 'Network error. Please try again.';

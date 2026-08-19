@@ -515,6 +515,44 @@
       position: relative; z-index: 1;
       padding: 80px 20px; text-align: center;
     }
+    /* ── REGISTRATION MODAL ── */
+    .open-reg-btn { max-width: 500px; margin: 0 auto; display: block; }
+    body.reg-modal-active { overflow: hidden; }
+    .reg-modal-overlay {
+      position: fixed; inset: 0; z-index: 3000;
+      display: none; align-items: flex-start; justify-content: center;
+      background: rgba(4,7,13,0.80);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      padding: 44px 16px; overflow-y: auto;
+      opacity: 0; transition: opacity 0.22s ease;
+    }
+    .reg-modal-overlay.open { display: flex; opacity: 1; }
+    .reg-modal-inner {
+      position: relative; width: 100%; max-width: 500px; margin: auto 0;
+      animation: regModalIn 0.28s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes regModalIn {
+      from { transform: translateY(18px) scale(0.98); opacity: 0; }
+      to   { transform: none; opacity: 1; }
+    }
+    .reg-modal-close {
+      position: absolute; top: -16px; right: -6px; z-index: 2;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); font-size: 1.5rem; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .reg-modal-close:hover { background: rgba(255,255,255,0.10); transform: scale(1.06); }
+    @media (max-width: 560px) {
+      .reg-modal-overlay { padding: 0; }
+      .reg-modal-inner { max-width: 100%; min-height: 100%; margin: 0; }
+      .reg-modal-inner .register-form {
+        border-radius: 0; min-height: 100vh; box-shadow: none;
+        display: flex; flex-direction: column; justify-content: center;
+      }
+      .reg-modal-close { top: 12px; right: 12px; background: rgba(255,255,255,0.06); }
+    }
     .register-form {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 28px; padding: 36px 32px;
@@ -716,7 +754,7 @@
     </div>
     <div class="nav-right">
       <a href="/login" class="nav-login">Login</a>
-      <a href="#register" class="nav-cta" onclick="track('landing_cta_click', {cta:'nav'})">Start Free Trial</a>
+      <a href="javascript:void(0)" class="nav-cta" onclick="track('landing_cta_click', {cta:'nav'}); openRegModal()">Start Free Trial</a>
     </div>
   </div>
 </nav>
@@ -730,7 +768,7 @@
   <h1>5 questions a day.<br/>A <span class="accent">study streak</span> that sticks.</h1>
   <p class="hero-sub">Daily NCERT MCQs for CBSE students. Classes 6–10. Takes 5 minutes — on the website or straight on WhatsApp.</p>
   <div class="hero-actions">
-    <a href="#register" class="btn-primary" onclick="track('landing_cta_click', {cta:'hero'})">Start Free — No Card Needed</a>
+    <a href="javascript:void(0)" class="btn-primary" onclick="track('landing_cta_click', {cta:'hero'}); openRegModal()">Start Free — No Card Needed</a>
     <a href="#how-it-works" class="btn-ghost">See How It Works</a>
   </div>
   <p class="hero-trust" style="color:var(--muted);">Built by an IIT Bombay engineer who lived this habit.</p>
@@ -1077,8 +1115,16 @@
   <div class="tag reveal" style="justify-content:center;">Register Now</div>
   <h2 class="section-title reveal" style="margin-bottom:12px;">Start your 7-day free trial today</h2>
   <p class="section-sub reveal" style="margin:0 auto 36px;">First week completely free. No credit card. Takes 60 seconds.</p>
+  <button class="submit-btn open-reg-btn reveal" onclick="openRegModal()">Start My Free 7 Days →</button>
+  <p class="form-note reveal" style="margin-top:14px;">7 days free from registration. No card required. Cancel anytime.</p>
+</section>
 
-  <div class="register-form reveal" id="reg-form-wrap">
+<!-- REGISTRATION MODAL -->
+<div class="reg-modal-overlay" id="reg-modal" onclick="if(event.target===this)closeRegModal()">
+  <div class="reg-modal-inner" id="reg-modal-inner">
+    <button type="button" class="reg-modal-close" onclick="closeRegModal()" aria-label="Close registration">×</button>
+
+  <div class="register-form" id="reg-form-wrap">
 
     <!-- Parent contact -->
     <div class="parent-section-label">Parent / Guardian</div>
@@ -1092,7 +1138,9 @@
         <input type="email" id="f-email" class="form-input" placeholder="for login link" />
       </div>
     </div>
-    <div class="form-row">
+    <!-- Referral entry hidden until referral codes launch. Input kept (not removed)
+         so submitReg/JS reading #f-referral stays safe; re-enable by removing display:none. -->
+    <div class="form-row" id="referral-row" style="display:none">
       <div class="form-group">
         <label class="form-label">Referral code (optional)</label>
         <input type="text" id="f-referral" class="form-input" placeholder="e.g. RIYA2026" style="text-transform:uppercase" />
@@ -1172,7 +1220,8 @@
     <br/>
     <a id="share-whatsapp-link" href="https://wa.me/?text=I%20just%20registered%20for%20StreakPrep%20%E2%80%94%20daily%20NCERT%20quiz%20for%20CBSE%20students.%20First%20week%20free%21%20Check%20it%20out%3A%20https%3A%2F%2Fstreakprep.ai" target="_blank" class="btn-primary" style="display:inline-block;margin-top:8px;">Share on WhatsApp →</a>
   </div>
-</section>
+  </div>
+</div>
 
 <!-- FOOTER -->
 <footer>
@@ -1377,18 +1426,33 @@
     }
   }
 
-  function scrollToRegister(plan) {
-    track('landing_cta_click', { cta: 'plan_' + plan });
-    document.getElementById('register').scrollIntoView({ behavior: 'smooth' });
-    setTimeout(() => {
-      if (childIds.length === 0) return;
+  // ── REGISTRATION MODAL ──
+  function openRegModal(plan) {
+    showRegStep('form');
+    const modal = document.getElementById('reg-modal');
+    modal.classList.add('open');
+    document.body.classList.add('reg-modal-active');
+    if (plan && childIds.length) {
       const id = childIds[0];
       const inputs = document.querySelectorAll('#child-' + id + '-subjects input');
       inputs.forEach((cb, i) => {
         cb.checked = plan === 'starter' ? i === 0 : plan === 'core' ? i < 3 : true;
       });
       subjectChanged(id);
-    }, 600);
+    }
+    setTimeout(() => { const p = document.getElementById('f-phone'); if (p) p.focus(); }, 140);
+  }
+  function closeRegModal() {
+    document.getElementById('reg-modal').classList.remove('open');
+    document.body.classList.remove('reg-modal-active');
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('reg-modal').classList.contains('open')) closeRegModal();
+  });
+
+  function scrollToRegister(plan) {
+    track('landing_cta_click', { cta: 'plan_' + plan });
+    openRegModal(plan);
   }
 
   // ── PIN / OTP BOX HELPERS ──
@@ -1422,8 +1486,9 @@
     document.getElementById('reg-otp-wrap').style.display   = step === 'otp'     ? '' : 'none';
     document.getElementById('reg-pin-wrap').style.display   = step === 'pin'     ? '' : 'none';
     document.getElementById('success-msg').style.display    = step === 'success' ? 'block' : 'none';
-    const scrollTarget = step === 'pin' ? 'reg-pin-wrap' : step === 'otp' ? 'reg-otp-wrap' : null;
-    if (scrollTarget) document.getElementById(scrollTarget).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Inside the modal now — no page scroll; just reset the overlay to the top of the step.
+    const overlay = document.getElementById('reg-modal');
+    if (overlay) overlay.scrollTop = 0;
   }
 
   let regState = {};
@@ -1481,6 +1546,7 @@
     // Quick duplicate check before showing PIN step
     const btn = document.querySelector('#reg-form-wrap .submit-btn');
     btn.disabled = true; btn.textContent = 'Checking…';
+    let initData = {};
     try {
       const res = await fetch('/api/register/init', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1492,6 +1558,7 @@
         showFormError('This number is already registered. <a href="/login" style="color:var(--orange)">Click here to login →</a>');
         return;
       }
+      initData = await res.json().catch(() => ({}));
     } catch { /* proceed — complete step will catch real errors */ }
 
     track('signup_otp_sent');
@@ -1500,6 +1567,18 @@
     showRegStep('otp');
     setupPinBoxes('otp-boxes');
     startResendTimer();
+
+    // Dev/staging convenience: /api/register/init returns _devOtp ONLY when no
+    // WhatsApp channel is configured (staging/dev — never prod). Prefill the OTP
+    // boxes so staging is testable without digging into DevTools.
+    if (initData._devOtp) {
+      const boxes = document.querySelectorAll('#otp-boxes .pin-box');
+      String(initData._devOtp).split('').forEach((d, i) => {
+        if (boxes[i]) { boxes[i].value = d; boxes[i].classList.add('filled'); }
+      });
+      const desc = document.getElementById('otp-desc');
+      if (desc) desc.innerHTML = 'Dev mode — code auto-filled (<b>' + initData._devOtp + '</b>). Tap Verify OTP.';
+    }
   }
 
   // ── REGISTER STEP 2: Verify OTP ──
@@ -1568,7 +1647,11 @@
       if (data.sessionToken) localStorage.setItem('sp_session', data.sessionToken);
       if (data.deviceToken)  localStorage.setItem('sp_device',  data.deviceToken);
 
-      if (data.referralCode) {
+      // Referral sharing hidden until referral codes launch. Backend still mints a
+      // code (harmless); we just don't surface it yet. Set REFERRALS_LAUNCHED = true
+      // to re-enable the share box + code-specific WhatsApp message.
+      const REFERRALS_LAUNCHED = false;
+      if (REFERRALS_LAUNCHED && data.referralCode) {
         document.getElementById('referral-code-text').textContent = data.referralCode;
         document.getElementById('referral-box').style.display = 'block';
         const msg = `I just registered for StreakPrep — daily NCERT quiz for CBSE students. First week free! Use my code ${data.referralCode} for a bonus when you subscribe: https://streakprep.ai?ref=${data.referralCode}`;
