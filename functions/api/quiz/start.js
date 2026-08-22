@@ -6,7 +6,7 @@ const SUBJECT_KEYS = {
   science:       { 6:['science'], 7:['science'], 8:['science'], 9:['science'], 10:['science'] },
   english:       { 6:['english'], 7:['english'], 8:['english'], 9:['english'], 10:['english_first_flight','english_footprints','english_words_and_expr'] },
   hindi:         { 6:['hindi'], 7:['hindi'], 8:['hindi'], 9:['hindi'], 10:['hindi_kritika','hindi_kshitij','hindi_sanchayan','hindi_sparsh'] },
-  social_science:{ 6:['social_science_part1'], 7:['social_science_part1','social_science_part2'], 8:['social_science_part1'], 9:[], 10:['civics','economics','geography','history'] },
+  social_science:{ 6:['social_science_part1'], 7:['social_science_part1','social_science_part2'], 8:['social_science_part1'], 9:['social_science_part1'], 10:['civics','economics','geography','history'] },
 };
 
 export async function onRequestGet({ request, env }) {
