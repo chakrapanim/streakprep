@@ -776,7 +776,7 @@
   <div class="hero-visual">
     <div class="streak-card-row">
       <div class="mini-card">
-        <div class="mini-icon orange">🔥</div>
+        <div class="mini-icon orange"><svg width="24" height="24" viewBox="0 0 64 64" fill="none"><rect x="14" y="38" width="8" height="14" rx="3" fill="#FF6B35" opacity="0.55"/><rect x="26" y="30" width="8" height="22" rx="3" fill="#FF6B35" opacity="0.75"/><rect x="38" y="20" width="8" height="32" rx="3" fill="#FF6B35"/><circle cx="42" cy="13" r="4.5" fill="#F0F4FF"/></svg></div>
         <div>
           <div class="mini-card-label">Current Streak</div>
           <div class="mini-card-val">14 Days</div>
@@ -881,7 +881,7 @@
           </div>
           <div class="quiz-footer">
             <div>
-              <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;">🔥 Your streak</div>
+              <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;"><svg width="13" height="13" viewBox="0 0 64 64" fill="none" style="vertical-align:-2px"><rect x="14" y="38" width="8" height="14" rx="3" fill="#FF6B35" opacity="0.55"/><rect x="26" y="30" width="8" height="22" rx="3" fill="#FF6B35" opacity="0.75"/><rect x="38" y="20" width="8" height="32" rx="3" fill="#FF6B35"/><circle cx="42" cy="13" r="4.5" fill="#F0F4FF"/></svg> Your streak</div>
               <div class="streak-dots">
                 <div class="sdot done">✓</div><div class="sdot done">✓</div><div class="sdot done">✓</div>
                 <div class="sdot today">4</div><div class="sdot future"></div><div class="sdot future"></div><div class="sdot future"></div>
@@ -910,7 +910,7 @@
           </div>
           <div class="quiz-footer">
             <div>
-              <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;">🔥 Your streak</div>
+              <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;"><svg width="13" height="13" viewBox="0 0 64 64" fill="none" style="vertical-align:-2px"><rect x="14" y="38" width="8" height="14" rx="3" fill="#FF6B35" opacity="0.55"/><rect x="26" y="30" width="8" height="22" rx="3" fill="#FF6B35" opacity="0.75"/><rect x="38" y="20" width="8" height="32" rx="3" fill="#FF6B35"/><circle cx="42" cy="13" r="4.5" fill="#F0F4FF"/></svg> Your streak</div>
               <div class="streak-dots">
                 <div class="sdot done">✓</div><div class="sdot done">✓</div><div class="sdot done">✓</div>
                 <div class="sdot today">4</div><div class="sdot future"></div><div class="sdot future"></div><div class="sdot future"></div>
@@ -1211,14 +1211,15 @@
   <div class="success-msg" id="success-msg">
     <div class="success-emoji">🎉</div>
     <h3>You're in!</h3>
-    <p>We'll send your first quiz link to your WhatsApp shortly.<br/>Your 7-day free trial starts today. Don't break the streak!</p>
+    <p>Your first quiz is ready. Your 7-day free trial starts today — don't break the streak!<br/>We'll also send the quiz link to your WhatsApp.</p>
+    <a href="/dashboard" class="btn-primary" style="display:inline-block;margin-top:4px;">Start Today's Quiz →</a>
     <div id="referral-box" style="display:none;margin:18px auto 0;max-width:320px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.3);border-radius:12px;padding:14px;">
       <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;">Your referral code</div>
       <div id="referral-code-text" style="font-size:1.2rem;font-weight:900;letter-spacing:0.05em;color:var(--orange);"></div>
       <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">Share it — when your first friend subscribes, you get a free month</div>
     </div>
     <br/>
-    <a id="share-whatsapp-link" href="https://wa.me/?text=I%20just%20registered%20for%20StreakPrep%20%E2%80%94%20daily%20NCERT%20quiz%20for%20CBSE%20students.%20First%20week%20free%21%20Check%20it%20out%3A%20https%3A%2F%2Fstreakprep.ai" target="_blank" class="btn-primary" style="display:inline-block;margin-top:8px;">Share on WhatsApp →</a>
+    <a id="share-whatsapp-link" href="https://wa.me/?text=I%20just%20registered%20for%20StreakPrep%20%E2%80%94%20daily%20NCERT%20quiz%20for%20CBSE%20students.%20First%20week%20free%21%20Check%20it%20out%3A%20https%3A%2F%2Fstreakprep.ai" target="_blank" class="btn-ghost" style="display:inline-block;margin-top:8px;">Share on WhatsApp →</a>
   </div>
   </div>
 </div>
@@ -1245,6 +1246,12 @@
 
   // Initialise first child block with all subjects pre-selected
   document.addEventListener('DOMContentLoaded', () => addChild(true));
+
+  // Deep-link: open the registration modal directly when arriving at /#register
+  // (e.g. the login page's "Start your free trial" link).
+  document.addEventListener('DOMContentLoaded', () => {
+    if (location.hash === '#register') openRegModal();
+  });
 
   // Prefill a referral code from a shared link (?ref=CODE), if present.
   document.addEventListener('DOMContentLoaded', () => {

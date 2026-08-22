@@ -79,17 +79,21 @@ export async function onRequestPost({ request, env }) {
   let newStreak = streakRow?.current_streak || 0;
   let newLongest = streakRow?.longest_streak || 0;
 
-  if (allDone) {
-    // Increment streak only once all subjects done for the day
+  // Streak lights on the FIRST completed subject of the day. A student who does
+  // today's quiz keeps their streak alive — they don't have to finish all 5
+  // subjects (`allDone` is still returned for the "perfect day" UI). The
+  // `lastDate === today` guard makes every later subject the same day a no-op,
+  // so the streak increments at most once per day.
+  {
     const lastDate  = streakRow?.last_quiz_date;
     const yesterday = getPreviousDateIST(today);
 
     if (lastDate === today) {
-      // Already updated today (shouldn't happen with allDone check, but guard)
+      // Already counted today — leave the streak as-is.
     } else if (lastDate === yesterday) {
-      newStreak = (streakRow.current_streak || 0) + 1;
+      newStreak = (streakRow?.current_streak || 0) + 1;
     } else {
-      newStreak = 1; // streak broken — reset
+      newStreak = 1; // first-ever quiz, or a missed day resets the streak
     }
     newLongest = Math.max(newStreak, newLongest);
 

@@ -266,13 +266,17 @@
     .sb-dot.pending { background: rgba(255,255,255,0.04); border: 1.5px dashed rgba(255,255,255,0.12); color: var(--muted); }
     .sb-dot.correct { background: var(--green); color: white; }
     .sb-dot.wrong   { background: var(--red);   color: white; }
+    .sb-ring-wrap { position: relative; width: 96px; height: 96px; margin-top: 4px; }
+    .sb-ring-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: var(--text); }
+    .sb-ring-center b { color: var(--orange); }
+    .qseg { transition: stroke 0.45s ease; }
     .sb-tip-text { font-size: 0.82rem; color: var(--muted); line-height: 1.65; }
   </style>
 </head>
 <body>
 
 <nav>
-  <a href="/" class="logo"><img src="/logo.svg?v=2" alt="" class="logo-icon" />Streak<span>Prep</span></a>
+  <a href="/" class="logo"><img src="/logo.svg?v=2" alt="" class="logo-icon" /><b style="font-weight:inherit">Streak<span>Prep</span></b></a>
   <a href="/dashboard" class="nav-back">← Dashboard</a>
 </nav>
 
@@ -283,13 +287,18 @@
       <div class="sb-meta" id="sb-meta"></div>
     </div>
     <div class="sb-card">
-      <div class="sb-label">🔥 Streak</div>
+      <div class="sb-label" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 64 64" fill="none">
+          <rect x="14" y="38" width="8" height="14" rx="3" fill="#FF6B35" opacity="0.55"/>
+          <rect x="26" y="30" width="8" height="22" rx="3" fill="#FF6B35" opacity="0.75"/>
+          <rect x="38" y="20" width="8" height="32" rx="3" fill="#FF6B35"/>
+          <circle cx="42" cy="13" r="4.5" fill="#F0F4FF"/></svg>Streak</div>
       <div class="sb-streak-num" id="sb-streak">—</div>
       <div class="sb-streak-sub" id="sb-streak-sub"></div>
     </div>
     <div class="sb-card">
       <div class="sb-label">Today's session</div>
-      <div class="sb-dots" id="sb-dots"></div>
+      <div class="sb-ring-wrap" id="sb-ring"></div>
     </div>
     <div class="sb-card">
       <div class="sb-label">💡 Tip</div>
@@ -307,6 +316,24 @@
     mathematics: 'Mathematics', science: 'Science',
     english: 'English', hindi: 'Hindi', social_science: 'Social Science',
   };
+
+  const SUBJECT_COLORS = {
+    mathematics: '#FF6B35', science: '#22C55E', english: '#3B82F6',
+    hindi: '#A855F7', social_science: '#F59E0B',
+  };
+
+  // Live session ring: `total` question-segments; each fills (subject colour)
+  // as its question is answered. Center shows answered/total.
+  function quizRingSVG(total) {
+    const N = total, R = 40, C = 2 * Math.PI * R, cx = 48, cy = 48;
+    const gap = 0.05, segFrac = 1 / N - gap, arcLen = C * segFrac;
+    let svg = `<svg width="96" height="96" viewBox="0 0 96 96">`;
+    for (let i = 0; i < N; i++) {
+      const rot = i * (360 / N) - 90;
+      svg += `<circle class="qseg" id="qseg-${i}" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8" stroke-linecap="round" stroke-dasharray="${arcLen} ${C - arcLen}" transform="rotate(${rot} ${cx} ${cy})"/>`;
+    }
+    return svg + `</svg>`;
+  }
 
   const TIPS = [
     'NCERT summaries at chapter-end are board exam gold — read them after every session.',
@@ -473,20 +500,20 @@
     document.getElementById('sb-streak').textContent = s > 0 ? `${s} day${s !== 1 ? 's' : ''}` : '0';
     document.getElementById('sb-streak-sub').textContent = s > 0 ? 'Keep it going!' : 'Start today!';
 
-    const dotsEl = document.getElementById('sb-dots');
-    dotsEl.innerHTML = Array.from({ length: data.count || 5 }, (_, i) =>
-      `<div class="sb-dot pending" id="sdot-${i}">${i + 1}</div>`
-    ).join('');
+    const qCount = data.count || 5;
+    document.getElementById('sb-ring').innerHTML =
+      quizRingSVG(qCount) + `<div class="sb-ring-center"><b id="sb-ring-count">0</b>/${qCount}</div>`;
 
     document.getElementById('sb-tip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
   }
 
   function updateSidebarDot(index, correct) {
-    const dot = document.getElementById('sdot-' + index);
-    if (!dot) return;
-    dot.classList.remove('pending');
-    dot.classList.add(correct ? 'correct' : 'wrong');
-    dot.textContent = correct ? '✓' : '✗';
+    // Fill this question's ring segment in the subject colour (fill by attempted;
+    // correctness is shown by the answer feedback + completion screen).
+    const seg = document.getElementById('qseg-' + index);
+    if (seg) seg.style.stroke = SUBJECT_COLORS[subject] || '#FF6B35';
+    const cnt = document.getElementById('sb-ring-count');
+    if (cnt) cnt.textContent = String((parseInt(cnt.textContent) || 0) + 1);
   }
 
   // ── Reviewer picker ──────────────────────────────────────────

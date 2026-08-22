@@ -48,16 +48,34 @@
     .greeting-sub  { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
 
     /* ── Streak banner ── */
-    .streak-bar {
-      display: flex; align-items: center; gap: 16px;
+    /* ── Daily ring + streak ── */
+    .hero-card {
+      display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
       background: var(--card); border: 1px solid var(--border);
-      border-radius: 16px; padding: 16px 20px; margin: 20px 0;
+      border-radius: 16px; padding: 20px 22px; margin: 20px 0;
     }
-    .streak-num { font-size: 2.2rem; font-weight: 900; color: var(--orange); line-height: 1; }
-    .streak-label { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-    .streak-best { margin-left: auto; text-align: right; }
-    .streak-best-num { font-size: 1.1rem; font-weight: 800; color: var(--muted); }
-    .streak-best-label { font-size: 0.7rem; color: #3D5070; }
+    .ring-wrap { position: relative; width: 128px; height: 128px; flex: none; }
+    .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .ring-center .rc-big { font-size: 1.4rem; font-weight: 900; line-height: 1; color: var(--text); }
+    .ring-center .rc-cap { font-size: 0.58rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 3px; }
+    .rfill { transition: stroke-dasharray 0.85s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes pdPop { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+    .perfect-day { animation: pdPop 0.5s ease 0.6s both; }
+    .hero-right { display: flex; flex-direction: column; gap: 7px; }
+    .streak-block { display: flex; align-items: center; gap: 11px; }
+    .streak-block .sb-num { font-size: 2.2rem; font-weight: 900; color: var(--orange); line-height: 1; }
+    .streak-block .sb-label { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .sb-best { font-size: 0.74rem; color: var(--muted); }
+    .sb-best b { color: var(--text); font-weight: 800; }
+    .perfect-day {
+      display: inline-flex; align-items: center; gap: 6px; margin-left: auto;
+      background: var(--orange-glow); border: 1px solid rgba(255,107,53,0.4);
+      color: var(--orange); font-size: 0.72rem; font-weight: 800; padding: 7px 13px; border-radius: 20px;
+    }
+    @media (max-width: 560px) {
+      .hero-card { gap: 16px; }
+      .perfect-day { margin-left: 0; width: 100%; justify-content: center; margin-top: 4px; }
+    }
 
     /* ── Subscription status ── */
     .sub-banner {
@@ -125,7 +143,7 @@
 <body>
 
 <nav>
-  <a href="/" class="logo"><img src="/logo.svg?v=2" alt="" class="logo-icon" />Streak<span>Prep</span></a>
+  <a href="/" class="logo"><img src="/logo.svg?v=2" alt="" class="logo-icon" /><b style="font-weight:inherit">Streak<span>Prep</span></b></a>
   <div class="nav-actions">
     <a href="/account" class="nav-link">Account</a>
     <a href="#" class="nav-link danger" onclick="logout(event)">Logout</a>
@@ -144,6 +162,41 @@
     hindi:         'Hindi',
     social_science:'Social Science',
   };
+
+  const SUBJECT_COLORS = {
+    mathematics: '#FF6B35', science: '#22C55E', english: '#3B82F6',
+    hindi: '#A855F7', social_science: '#F59E0B',
+  };
+
+  // StreakPrep logo mark: 3 rising bars + white dot (replaces the fire symbol).
+  function logoMark(size) {
+    const s = size || 30;
+    return `<svg width="${s}" height="${s}" viewBox="0 0 64 64" fill="none" style="flex:none">
+      <rect x="14" y="38" width="8" height="14" rx="3" fill="#FF6B35" opacity="0.55"/>
+      <rect x="26" y="30" width="8" height="22" rx="3" fill="#FF6B35" opacity="0.75"/>
+      <rect x="38" y="20" width="8" height="32" rx="3" fill="#FF6B35"/>
+      <circle cx="42" cy="13" r="4.5" fill="#F0F4FF"/></svg>`;
+  }
+
+  // Segmented daily ring. progress[i] = 0..1 filled fraction for subject i.
+  function dailyRing(subjects, progress) {
+    const N = subjects.length, R = 54, C = 2 * Math.PI * R, cx = 64, cy = 64;
+    const gap = N === 1 ? 0 : (N <= 3 ? 0.04 : 0.028), segFrac = 1 / N - gap, arcLen = C * segFrac;
+    let svg = `<svg width="128" height="128" viewBox="0 0 128 128">`;
+    for (let i = 0; i < N; i++) {
+      const rot = i * (360 / N) - 90;
+      svg += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${arcLen} ${C - arcLen}" transform="rotate(${rot} ${cx} ${cy})"/>`;
+      const f = Math.max(0, Math.min(1, progress[i])), fill = arcLen * f;
+      if (f > 0) svg += `<circle class="rfill" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${SUBJECT_COLORS[subjects[i]] || '#FF6B35'}" stroke-width="11" stroke-linecap="round" stroke-dasharray="0 ${C}" data-dash="${fill} ${C - fill}" style="transition-delay:${i * 0.1}s" transform="rotate(${rot} ${cx} ${cy})"/>`;
+    }
+    return svg + `</svg>`;
+  }
+  // Trigger the ring fill transition after the SVG is in the DOM.
+  function animateRingFill() {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('#page .rfill').forEach(el => { el.style.strokeDasharray = el.getAttribute('data-dash'); });
+    }));
+  }
 
   async function init() {
     const session = localStorage.getItem('sp_session');
@@ -174,6 +227,12 @@
     const doneCount = d.doneSubjects.length;
     const totalSubj = d.student.subjects.length;
     const pct = totalSubj > 0 ? Math.round((doneCount / totalSubj) * 100) : 0;
+
+    // Daily ring: each subject arc is full when that subject is done today.
+    const ringProgress = d.student.subjects.map(s => d.doneSubjects.includes(s) ? 1 : 0);
+    const isSolo   = totalSubj === 1;
+    const ringBig  = isSolo ? `${doneCount === 1 ? 5 : 0}/5` : `${doneCount}/${totalSubj}`;
+    const ringCap  = isSolo ? 'questions' : 'subjects';
 
     // Profile switcher (only if siblings > 1)
     const profilesHtml = d.siblings.length > 1 ? `
@@ -222,15 +281,19 @@
         <div class="greeting-sub">Class ${d.student.class} · ${d.student.subjects.length} subject${d.student.subjects.length > 1 ? 's' : ''}</div>
       </div>
 
-      <div class="streak-bar">
-        <div>
-          <div class="streak-num">🔥 ${d.streak.current_streak}</div>
-          <div class="streak-label">day streak</div>
+      <div class="hero-card">
+        <div class="ring-wrap">
+          ${dailyRing(d.student.subjects, ringProgress)}
+          <div class="ring-center"><div class="rc-big">${ringBig}</div><div class="rc-cap">${ringCap}</div></div>
         </div>
-        <div class="streak-best">
-          <div class="streak-best-num">${d.streak.longest_streak}</div>
-          <div class="streak-best-label">Best ever</div>
+        <div class="hero-right">
+          <div class="streak-block">
+            ${logoMark(34)}
+            <div><div class="sb-num">${d.streak.current_streak}</div><div class="sb-label">day streak</div></div>
+          </div>
+          <div class="sb-best">Best ever <b>${d.streak.longest_streak}</b></div>
         </div>
+        ${allDone ? '<div class="perfect-day">✨ Perfect Day</div>' : ''}
       </div>
 
       <div class="sub-banner ${subType}">
@@ -240,18 +303,13 @@
 
       <div class="section-title">Today's Quiz</div>
 
-      <div class="progress-row">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width:${pct}%"></div>
-        </div>
-        <span class="progress-label">${doneCount}/${totalSubj} done</span>
-      </div>
-
       <div class="subject-grid">${subjectCards}</div>
 
       <a href="${ctaHref}" class="${ctaCls}" onclick="track('quiz_cta_click', {target: '${ctaHref}', canQuiz: ${canQuiz}})">${ctaLabel}</a>
       ${allDone ? '<p class="all-done-msg">Come back tomorrow to keep your streak alive!</p>' : ''}
     `;
+
+    animateRingFill();
   }
 
   async function switchProfile(studentId) {
